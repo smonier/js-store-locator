@@ -1,0 +1,399 @@
+/* Card container */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cardBorderPrimary {
+  border-color: #0d6efd;
+}
+
+/* Card header */
+.cardHeader {
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 0;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.cardHeaderPrimary {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Card body */
+.cardBody {
+  flex: 1 1 auto;
+  padding: 1.25rem;
+}
+
+/* Card footer */
+.cardFooter {
+  padding: 0.75rem 1.25rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+/* Typography */
+.cardTitle {
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.cardSubtitle {
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.cardText {
+  margin-bottom: 1rem;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.375rem;
+}
+
+.badgePrimary {
+  background-color: #0d6efd;
+}
+
+.badgePill {
+  border-radius: 50rem;
+}
+
+/* Alert */
+.alert {
+  position: relative;
+  padding: 1rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+
+.alertInfo {
+  color: #055160;
+  background-color: #cff4fc;
+  border-color: #b6effb;
+}
+
+/* List group */
+.listGroup {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-bottom: 0;
+  border-radius: 0.375rem;
+}
+
+.listGroupFlush {
+  border-radius: 0;
+}
+
+.listGroupFlush .listGroupItem {
+  border-width: 0 0 1px;
+}
+
+.listGroupFlush .listGroupItem:last-child {
+  border-bottom-width: 0;
+}
+
+.listGroupItem {
+  position: relative;
+  display: block;
+  padding: 0.5rem 1rem;
+  color: #212529;
+  text-decoration: none;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.listGroupItem:first-child {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.listGroupItem:last-child {
+  border-bottom-right-radius: inherit;
+  border-bottom-left-radius: inherit;
+}
+
+/* Utility classes */
+.textMuted {
+  color: #6c757d !important;
+}
+
+.textWhite {
+  color: #fff !important;
+}
+
+.mb0 {
+  margin-bottom: 0 !important;
+}
+
+.mb2 {
+  margin-bottom: 0.5rem !important;
+}
+
+.mt3 {
+  margin-top: 1rem !important;
+}
+
+.me1 {
+  margin-right: 0.25rem !important;
+}
+
+.me2 {
+  margin-right: 0.5rem !important;
+}
+
+.px0 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.dFlex {
+  display: flex !important;
+}
+
+.alignItemsCenter {
+  align-items: center !important;
+}
+
+/* Icon styles */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: currentColor;
+}
+
+/* Store info grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #495057;
+}
+
+.infoValue {
+  color: #212529;
+}
+
+/* Store image */
+.storeImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+/* Address block */
+.addressBlock {
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+}
+
+/* Opening hours list */
+.hoursList {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+}
+
+.hoursItem {
+  padding: 0.25rem 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.dayName {
+  font-weight: 500;
+  color: #495057;
+}
+
+.hoursTime {
+  color: #6c757d;
+}
+
+/* Status badge for open/closed */
+.statusBadge {
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  font-size: 0.75em;
+  font-weight: 600;
+  border-radius: 0.25rem;
+}
+
+.statusOpen {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.statusClosed {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+/* Small text */
+.small {
+  font-size: 0.875em;
+}
+
+/* Simple card layout for CM view */
+.simpleCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 12px 30px -18px rgba(15, 23, 42, 0.35);
+}
+
+.heroSection {
+  position: relative;
+  height: 180px;
+  background: #e2e8f0;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroFallback {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #475569;
+  background: linear-gradient(135deg, #e0f2fe, #e2e8f0);
+}
+
+.pricePill {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(15, 23, 42, 0.8);
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.content {
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.storeTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subtleText {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.coordText {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.description {
+  margin: 0.75rem 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.infoStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.infoValue {
+  color: #334155;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.infoValue:hover {
+  color: #0f172a;
+}
+
+.badgeGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.chip {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 600;
+}

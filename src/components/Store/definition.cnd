@@ -1,0 +1,28 @@
+<jnt = 'http://www.jahia.org/jahia/nt/1.0'>
+<jmix = 'http://www.jahia.org/jahia/mix/1.0'>
+<jsstorelocnt = 'http://www.jahia.org/js-store-locator/nt/1.0'>
+<jsstorelocmix = 'http://www.jahia.org/js-store-locator/mix/1.0'>
+
+// Mixin for address info
+[jsstorelocmix:address] mixin
+ - streetAddress (string)
+ - addressLocality (string)
+ - addressRegion (string)
+ - postalCode (string)
+ - addressCountry (string)
+
+// Mixin for geolocation
+[jsstorelocmix:geo] mixin
+ - latitude (double) indexed=no
+ - longitude (double) indexed=no
+
+// Main store content type
+[jsstorelocnt:store] > jnt:content, jmix:mainResource, mix:title, jsstorelocmix:address, jsstorelocmix:geo, jmix:structuredContent, jsstorelocmix:component
+ - name (string) internationalized
+ - description (string) internationalized
+ - url (string)
+ - telephone (string)
+ - image (weakreference, picker[type='image']) < 'jmix:image'
+ - priceRange (string)
+ - amenityFeature (string) multiple internationalized
+ - openingHours (string) multiple indexed=no

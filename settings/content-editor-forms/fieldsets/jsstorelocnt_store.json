@@ -1,0 +1,48 @@
+{
+  "name": "jsstorelocnt:store",
+  "description": "Store content editor form",
+  "dynamic": false,
+  "fields": [
+    {
+      "name": "priceRange",
+      "selectorType": "Choicelist",
+      "selectorOptionsMap": {
+        "allowCustomEntry": "false"
+      },
+      "valueConstraints": [
+        {
+          "displayValue": "$",
+          "value": {
+            "type": "String",
+            "value": "$"
+          }
+        },
+        {
+          "displayValue": "$$",
+          "value": {
+            "type": "String",
+            "value": "$$"
+          }
+        },
+        {
+          "displayValue": "$$$",
+          "value": {
+            "type": "String",
+            "value": "$$$"
+          }
+        },
+        {
+          "displayValue": "$$$$",
+          "value": {
+            "type": "String",
+            "value": "$$$$"
+          }
+        }
+      ]
+    },
+    {
+      "name": "openingHours",
+      "selectorType": "OpeningHoursJson"
+    }
+  ]
+}

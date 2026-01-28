@@ -1085,39 +1085,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smonier/js-store-locator@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@smonier/js-store-locator@workspace:."
-  dependencies:
-    "@babel/runtime": "npm:^7.25.0"
-    "@eslint-react/eslint-plugin": "npm:^1.49.0"
-    "@eslint/compat": "npm:^1.2.9"
-    "@eslint/js": "npm:^9.26.0"
-    "@jahia/data-helper": "npm:^1.1.14"
-    "@jahia/javascript-modules-library": "npm:^1.0.1"
-    "@jahia/ui-extender": "npm:^1.2.0"
-    "@jahia/vite-federation-plugin": "npm:^0.1.0"
-    "@jahia/vite-plugin": "npm:^1.0.1"
-    "@types/leaflet": "npm:^1.9.12"
-    "@types/prop-types": "npm:^15"
-    "@types/react": "npm:^18.3.12"
-    eslint: "npm:^9.26.0"
-    globals: "npm:^16.0.0"
-    leaflet: "npm:^1.9.4"
-    lucide-react: "npm:^0.460.0"
-    prettier: "npm:^3.5.3"
-    prop-types: "npm:^15.8.1"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-    react-leaflet: "npm:^4.2.1"
-    react-redux: "npm:^9.2.0"
-    typescript: "npm:^5.8.3"
-    typescript-eslint: "npm:^8.31.1"
-    typescript-plugin-css-modules: "npm:^5.1.0"
-    vite: "npm:^7.0.0"
-  languageName: unknown
-  linkType: soft
-
 "@types/estree@npm:1.0.8, @types/estree@npm:^1.0.0, @types/estree@npm:^1.0.6":
   version: 1.0.8
   resolution: "@types/estree@npm:1.0.8"
@@ -3051,6 +3018,39 @@ __metadata:
   checksum: 10c0/84ec4f8e21d6514db24737d9caf65361511f75e5e424980eebca4199f400874f45e562ac20fa8aeb1dd20ca2f3f81f0788b6e9c3e64d216a5794fd6f30e0e042
   languageName: node
   linkType: hard
+
+"js-store-locator@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "js-store-locator@workspace:."
+  dependencies:
+    "@babel/runtime": "npm:^7.25.0"
+    "@eslint-react/eslint-plugin": "npm:^1.49.0"
+    "@eslint/compat": "npm:^1.2.9"
+    "@eslint/js": "npm:^9.26.0"
+    "@jahia/data-helper": "npm:^1.1.14"
+    "@jahia/javascript-modules-library": "npm:^1.0.1"
+    "@jahia/ui-extender": "npm:^1.2.0"
+    "@jahia/vite-federation-plugin": "npm:^0.1.0"
+    "@jahia/vite-plugin": "npm:^1.0.1"
+    "@types/leaflet": "npm:^1.9.12"
+    "@types/prop-types": "npm:^15"
+    "@types/react": "npm:^18.3.12"
+    eslint: "npm:^9.26.0"
+    globals: "npm:^16.0.0"
+    leaflet: "npm:^1.9.4"
+    lucide-react: "npm:^0.460.0"
+    prettier: "npm:^3.5.3"
+    prop-types: "npm:^15.8.1"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-leaflet: "npm:^4.2.1"
+    react-redux: "npm:^9.2.0"
+    typescript: "npm:^5.8.3"
+    typescript-eslint: "npm:^8.31.1"
+    typescript-plugin-css-modules: "npm:^5.1.0"
+    vite: "npm:^7.0.0"
+  languageName: unknown
+  linkType: soft
 
 "js-tokens@npm:^3.0.0 || ^4.0.0":
   version: 4.0.0

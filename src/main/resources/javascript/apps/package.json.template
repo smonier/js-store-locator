@@ -4,7 +4,7 @@
       "jahia": "javascript/apps/remoteEntry.js"
     },
     "apps": {
-      "jahia": "@smonier/js-store-locator/init"
+      "jahia": "js-store-locator/init"
     }
   }
 }

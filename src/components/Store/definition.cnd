@@ -17,7 +17,7 @@
  - longitude (double) indexed=no
 
 // Main store content type
-[jsstorelocnt:store] > jnt:content, jmix:mainResource, mix:title, jsstorelocmix:address, jsstorelocmix:geo, jmix:structuredContent, jsstorelocmix:component
+[jsstorelocnt:store] > jnt:content, jmix:editorialContent, jmix:mainResource, mix:title, jsstorelocmix:address, jsstorelocmix:geo, jmix:structuredContent, jsstorelocmix:component
  - name (string) internationalized
  - description (string) internationalized
  - url (string)

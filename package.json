@@ -1,5 +1,5 @@
 {
-  "name": "@smonier/js-store-locator",
+  "name": "js-store-locator",
   "version": "1.0.0",
   "description": "Jahia JS Module - Store locator",
   "keywords": [
@@ -68,7 +68,7 @@
   },
   "jahia": {
     "required-version": "8.2.0.0",
-    "name": "@smonier/js-store-locator",
+    "name": "js-store-locator",
     "snapshot": false,
     "module-dependencies": "default,javascript-modules-engine=[1,2)",
     "module-type": "module",

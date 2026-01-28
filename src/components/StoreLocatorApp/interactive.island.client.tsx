@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { I18nextProvider, useTranslation } from "react-i18next";
-import i18n from "../../i18n"; // Dedicated i18n instance for this module
+import {
+  StoreLocatorTranslationProvider,
+  useStoreLocatorTranslation,
+} from "./translation";
 import "leaflet/dist/leaflet.css"; // Bundle Leaflet styles to ensure tiles render
 import type { Store } from "./types";
 import classes from "./StoreLocatorApp.module.css";
@@ -21,7 +23,7 @@ export default function StoreLocatorClient({
   locale,
 }: StoreLocatorClientProps) {
   return (
-    <I18nextProvider i18n={i18n}>
+    <StoreLocatorTranslationProvider locale={locale}>
       <StoreLocatorClientInner
         title={title}
         welcomeTitle={welcomeTitle}
@@ -29,7 +31,7 @@ export default function StoreLocatorClient({
         stores={stores}
         locale={locale}
       />
-    </I18nextProvider>
+    </StoreLocatorTranslationProvider>
   );
 }
 
@@ -38,23 +40,8 @@ function StoreLocatorClientInner({
   welcomeTitle,
   welcomeMessage,
   stores,
-  locale,
 }: StoreLocatorClientProps) {
-  const { t, i18n } = useTranslation();
-  const [i18nReady, setI18nReady] = useState(i18n.isInitialized);
-
-  useEffect(() => {
-    if (i18n.isInitialized) {
-      setI18nReady(true);
-      return;
-    }
-    const handleInit = () => setI18nReady(true);
-    i18n.on("initialized", handleInit);
-    return () => {
-      i18n.off("initialized", handleInit);
-    };
-  }, [i18n]);
-
+  const { t } = useStoreLocatorTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -66,15 +53,6 @@ function StoreLocatorClientInner({
     defaultIcon: any;
   } | null>(null);
 
-  // Initialize i18n with locale
-  useEffect(() => {
-    if (locale) {
-      const normalizedLocale = locale.toLowerCase().split(/[-_]/)[0];
-      i18n.changeLanguage(normalizedLocale);
-    }
-  }, [locale, i18n]);
-
-  // Check mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -151,10 +129,6 @@ function StoreLocatorClientInner({
   const handleCloseDetails = useCallback(() => {
     setShowStoreDetails(false);
   }, []);
-
-  if (!i18nReady) {
-    return <div className={classes.loadingMap}>Loading...</div>;
-  }
 
   return (
     <div className={classes.app}>
@@ -244,7 +218,7 @@ function StoreLocatorClientInner({
 
 // Search Bar Component
 function SearchBar({ query, setQuery }: { query: string; setQuery: (q: string) => void }) {
-  const { t } = useTranslation();
+  const { t } = useStoreLocatorTranslation();
 
   return (
     <div className={classes.searchForm}>
@@ -272,7 +246,7 @@ function StoreList({
   selectedStore: Store | null;
   onStoreSelect: (store: Store) => void;
 }) {
-  const { t } = useTranslation();
+  const { t } = useStoreLocatorTranslation();
 
   if (stores.length === 0) {
     return (
@@ -305,7 +279,7 @@ function StoreListItem({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t } = useStoreLocatorTranslation();
   const isOpen = isStoreOpen(store);
 
   return (
@@ -421,8 +395,8 @@ function StoreMap({
 
 // Store Details Component
 function StoreDetails({ store, onClose }: { store: Store; onClose: () => void }) {
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language || "en";
+  const { t, language } = useStoreLocatorTranslation();
+  const locale = language;
 
   const formatAddress = () => {
     const { streetAddress, addressLocality, addressRegion, postalCode } = store.address;

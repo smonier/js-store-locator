@@ -1,0 +1,1 @@
+export { OpeningHoursSelector } from "./OpeningHoursSelector";

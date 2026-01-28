@@ -1,0 +1,10 @@
+{
+  "jahia": {
+    "remotes": {
+      "jahia": "javascript/apps/remoteEntry.js"
+    },
+    "apps": {
+      "jahia": "@smonier/js-store-locator/init"
+    }
+  }
+}

@@ -8,6 +8,7 @@
 # Node
 dist
 node_modules
+javascript/*
 
 # Yarn
 .yarn/*

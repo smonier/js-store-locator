@@ -42,7 +42,7 @@
     },
     {
       "name": "openingHours",
-      "selectorType": "OpeningHoursJson"
+      "selectorType": "OpeningHoursSelector"
     }
   ]
 }

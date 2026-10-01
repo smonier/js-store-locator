@@ -333,12 +333,20 @@
   width: 2.25rem;
   height: 2.25rem;
   color: var(--_text);
+  background-color: var(--_surface);
+  border-color: var(--_border-strong);
   line-height: 2.25rem;
+}
+
+/* Leaflet paints its controls white; on a dark host the text colour above would vanish on it. */
+.app :global(.leaflet-container a.leaflet-control-zoom-in:hover),
+.app :global(.leaflet-container a.leaflet-control-zoom-out:hover) {
+  background-color: var(--_surface-alt);
 }
 
 .app :global(.leaflet-control-attribution) {
   color: var(--_text);
-  background-color: rgb(255 255 255 / 0.9);
+  background-color: color-mix(in srgb, var(--_surface) 90%, transparent);
 }
 
 .app :global(.leaflet-control-attribution a) {

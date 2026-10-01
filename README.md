@@ -32,7 +32,7 @@ yarn deploy                # or copy dist/package.tgz to your Jahia
   - Views: interactive island (default), Content Manager preview
 - `jsstorelocnt:store`
   - Properties include `name`, `description`, `url`, `telephone`, `image`, `priceRange`, `amenityFeature`, `openingHours`, plus address/geolocation mixins
-  - Views: Content Manager preview card
+  - Views: `fullPage` (the store's own page, used by template sets that render a main resource with that view), default, Content Manager preview card
 
 All overrides live under `settings/content-editor-forms/fieldsets` and icons under `settings/content-types-icons`.
 
@@ -54,12 +54,21 @@ All overrides live under `settings/content-editor-forms/fieldsets` and icons und
 
 - CSS Modules per component, e.g. `src/components/StoreLocatorApp/StoreLocatorApp.module.css`
 - Leaflet CSS bundled via the island client import (`import "leaflet/dist/leaflet.css"`)
+- The locator keeps a light panel of its own. A host theme can map these custom properties (set them on an ancestor of the app): `--jsstoreloc-color-text`, `--jsstoreloc-color-text-muted`, `--jsstoreloc-color-surface`, `--jsstoreloc-color-surface-alt`, `--jsstoreloc-color-border`, `--jsstoreloc-color-border-strong`, `--jsstoreloc-color-accent`, `--jsstoreloc-color-accent-subtle`, `--jsstoreloc-color-focus`, `--jsstoreloc-color-open-bg`, `--jsstoreloc-color-open-text`, `--jsstoreloc-color-closed-bg`, `--jsstoreloc-color-closed-text`, `--jsstoreloc-radius`, `--jsstoreloc-shadow`, `--jsstoreloc-font-family` and `--jsstoreloc-color-scheme`. Keep text at 4.5:1 and control borders and the focus ring at 3:1 against the surface.
+
+## Accessibility
+
+- The store list is the text equivalent of the map: every store, with its address, contact links, amenities and opening hours, is reachable without the map. The island is rendered on the server, so without JavaScript the list links each store to its own page.
+- Headings start one level below the container's title (h3 in a titled section, h2 elsewhere); the store page renders the store name as its h1.
+- The search field has a visible label, and the number of results is announced (`role="status"`).
+- Markers are keyboard buttons named after the store; Enter or Space opens the details, the focus moves to them, and Escape or the close button returns it to the list.
+- The open/closed status is text with a symbol, computed in the visitor's browser.
 
 ## Scripts
 
 | Script          | Description                                                        |
 | --------------- | ------------------------------------------------------------------ |
-| `yarn build`    | Type-check + build client/server bundles                           |
+| `yarn build`    | Type-check, build the views and island, then the UI extension      |
 | `yarn package`  | Packs the module into `dist/package.tgz`                           |
 | `yarn deploy`   | Pushes the build artifact to the configured Jahia instance         |
 | `yarn dev`      | Watch mode (alias `yarn watch`)                                    |

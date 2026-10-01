@@ -1,8 +1,10 @@
+import type { JCRNodeWrapper } from "org.jahia.services.content";
+
 export interface StoreLocatorAppProps {
   "jcr:title"?: string;
   "welcomeTitle"?: string;
   "welcomeMessage"?: string;
-  "storesFolder"?: any; // JCRNodeWrapper | undefined
+  "storesFolder"?: JCRNodeWrapper;
 }
 
 export interface StoreAddress {
@@ -24,17 +26,23 @@ export interface OpeningHoursSpecification {
   closes: string;
 }
 
+/**
+ * Store data as the views and the island use it. Every value is plain, serialisable data; links
+ * are already checked (`url` is http or https only, `telephoneHref` is a `tel:` URI or empty).
+ */
 export interface Store {
   id: string;
   name: string;
-  description?: string;
-  telephone?: string;
-  url?: string;
-  image?: string;
+  description: string;
+  telephone: string;
+  telephoneHref: string;
+  url: string;
+  pageUrl: string;
+  image: string;
   address: StoreAddress;
-  geo: StoreGeoCoordinates;
-  openingHoursSpecification?: OpeningHoursSpecification[];
-  priceRange?: string;
-  amenityFeature?: string[];
-  distance?: number;
+  /** Null when the store has no usable coordinates: it is then left off the map. */
+  geo: StoreGeoCoordinates | null;
+  openingHoursSpecification: OpeningHoursSpecification[];
+  priceRange: string;
+  amenityFeature: string[];
 }

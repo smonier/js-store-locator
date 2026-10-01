@@ -1,10 +1,15 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import type * as Leaflet from "leaflet";
+import "leaflet/dist/leaflet.css";
 import {
   StoreLocatorTranslationProvider,
+  fill,
   useStoreLocatorTranslation,
-} from "./translation";
-import "leaflet/dist/leaflet.css"; // Bundle Leaflet styles to ensure tiles render
-import type { Store } from "./types";
+} from "./translation.js";
+import { Heading, StoreInfo, storeLocation } from "./StoreInfo.js";
+import { isOpenAt } from "./hours.js";
+import type { Store } from "./types.js";
 import classes from "./StoreLocatorApp.module.css";
 
 interface StoreLocatorClientProps {
@@ -13,619 +18,473 @@ interface StoreLocatorClientProps {
   welcomeMessage?: string;
   stores: Store[];
   locale: string;
+  /** Level of the app's own heading; the store names are one level below. */
+  headingLevel: number;
+  /** Identifier of the app node: a prefix for element ids that is the same on server and client. */
+  appId: string;
 }
 
-export default function StoreLocatorClient({
-  title,
-  welcomeTitle,
-  welcomeMessage,
-  stores,
-  locale,
-}: StoreLocatorClientProps) {
+interface LeafletDeps {
+  L: typeof Leaflet;
+  icon: Leaflet.Icon;
+}
+
+const DEFAULT_CENTER: [number, number] = [48.8566, 2.3522];
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * The store locator: a searchable list of stores, a Leaflet map and a details panel.
+ *
+ * The list is the accessible equivalent of the map: it holds every store and every detail. The
+ * island is rendered on the server, so without JavaScript the visitor gets the list, each store
+ * name linking to the store's own page; the map, the selection and the open/closed status (which
+ * needs the visitor's clock) start once the island runs in the browser.
+ */
+export default function StoreLocatorClient(props: StoreLocatorClientProps) {
   return (
-    <StoreLocatorTranslationProvider locale={locale}>
-      <StoreLocatorClientInner
-        title={title}
-        welcomeTitle={welcomeTitle}
-        welcomeMessage={welcomeMessage}
-        stores={stores}
-        locale={locale}
-      />
+    <StoreLocatorTranslationProvider locale={props.locale}>
+      <StoreLocator {...props} />
     </StoreLocatorTranslationProvider>
   );
 }
 
-function StoreLocatorClientInner({
+function StoreLocator({
   title,
   welcomeTitle,
   welcomeMessage,
   stores,
+  headingLevel,
+  appId,
 }: StoreLocatorClientProps) {
-  const { t } = useStoreLocatorTranslation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [showStoreDetails, setShowStoreDetails] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const translation = useStoreLocatorTranslation();
+  const { t } = translation;
+  const uid = `jsstoreloc-${appId}`;
+  const ids = {
+    search: `${uid}-search`,
+    sidebar: `${uid}-sidebar`,
+    mapNote: `${uid}-map-note`,
+    details: `${uid}-details`,
+  };
+
+  const [mounted, setMounted] = useState(false);
+  const [now, setNow] = useState<Date | null>(null);
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [listHidden, setListHidden] = useState(false);
   const [resetToken, setResetToken] = useState(0);
-  const [leafletDeps, setLeafletDeps] = useState<{
-    L: any;
-    defaultIcon: any;
-  } | null>(null);
+  const [leaflet, setLeaflet] = useState<LeafletDeps | null>(null);
+
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const focusDetails = useRef(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    setMounted(true);
+    setNow(new Date());
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
 
-  // Load Leaflet on client only to avoid SSR issues
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const loadLeaflet = async () => {
-      console.info("[store-locator] loading Leaflet resources");
-      try {
-        const [leaflet, iconUrl, shadowUrl] = await Promise.all([
-          import("leaflet"),
-          import("leaflet/dist/images/marker-icon.png"),
-          import("leaflet/dist/images/marker-shadow.png"),
-        ]);
-
-        const L = leaflet.default;
-        const resolvedIconUrl = (iconUrl as any).default ?? iconUrl;
-        const resolvedShadowUrl = (shadowUrl as any).default ?? shadowUrl;
-        const defaultIcon = L.icon({
-          iconUrl: resolvedIconUrl as string,
-          shadowUrl: resolvedShadowUrl as string,
+    let cancelled = false;
+    Promise.all([
+      import("leaflet"),
+      import("leaflet/dist/images/marker-icon.png"),
+      import("leaflet/dist/images/marker-icon-2x.png"),
+      import("leaflet/dist/images/marker-shadow.png"),
+    ])
+      .then(([module, iconUrl, iconRetinaUrl, shadowUrl]) => {
+        if (cancelled) return;
+        const L = (module.default ?? module) as typeof Leaflet;
+        const icon = L.icon({
+          iconUrl: iconUrl.default,
+          iconRetinaUrl: iconRetinaUrl.default,
+          shadowUrl: shadowUrl.default,
           iconSize: [25, 41],
           iconAnchor: [12, 41],
           shadowSize: [41, 41],
         });
-
-        setLeafletDeps({
-          L,
-          defaultIcon,
-        });
-        console.info("[store-locator] Leaflet ready");
-      } catch (error) {
-        console.error("[store-locator] Error loading Leaflet", error);
-      }
+        setLeaflet({ L, icon });
+      })
+      .catch((error) => console.error("[store-locator] the map could not be loaded", error));
+    return () => {
+      cancelled = true;
     };
-
-    loadLeaflet();
   }, []);
 
-  // Filter stores
   const filteredStores = useMemo(() => {
-    if (!searchQuery.trim()) return stores;
-    const lc = searchQuery.toLowerCase();
+    const lc = query.trim().toLowerCase();
+    if (!lc) return stores;
     return stores.filter(
       (store) =>
         store.name.toLowerCase().includes(lc) ||
         store.address.addressLocality.toLowerCase().includes(lc) ||
-        store.address.addressRegion.toLowerCase().includes(lc)
+        store.address.addressRegion.toLowerCase().includes(lc) ||
+        store.address.postalCode.toLowerCase().includes(lc),
     );
-  }, [stores, searchQuery]);
+  }, [stores, query]);
 
-  const handleStoreSelect = useCallback((store: Store) => {
-    setSelectedStore(store);
-    setShowStoreDetails(true);
-    if (isMobile) {
-      setSidebarOpen(false);
+  const selectedStore = useMemo(
+    () => stores.find((store) => store.id === selectedId) ?? null,
+    [stores, selectedId],
+  );
+
+  const handleSelect = useCallback((store: Store) => {
+    focusDetails.current = true;
+    setSelectedId(store.id);
+    setDetailsOpen(true);
+  }, []);
+
+  // Move the focus to the details once they are on screen.
+  useEffect(() => {
+    if (detailsOpen && focusDetails.current) {
+      focusDetails.current = false;
+      document.getElementById(ids.details)?.focus();
     }
-  }, [isMobile]);
+  }, [detailsOpen, selectedId, ids.details]);
 
-  const handleResetStores = useCallback(() => {
-    setSelectedStore(null);
-    setShowStoreDetails(false);
-    setSearchQuery("");
+  const handleCloseDetails = useCallback(() => {
+    const id = selectedId;
+    setDetailsOpen(false);
+    // Give the focus back to the store's button in the list, or to the search field.
+    window.requestAnimationFrame(() => {
+      const button = id
+        ? listRef.current?.querySelector<HTMLButtonElement>(`button[data-store-id="${id}"]`)
+        : null;
+      (button ?? searchRef.current)?.focus();
+    });
+  }, [selectedId]);
+
+  const handleReset = useCallback(() => {
+    setSelectedId(null);
+    setDetailsOpen(false);
+    setQuery("");
     setResetToken((v) => v + 1);
   }, []);
 
-  const handleCloseDetails = useCallback(() => {
-    setShowStoreDetails(false);
-  }, []);
+  const statusText =
+    filteredStores.length === 0
+      ? t("storelist.nostore")
+      : fill(t(filteredStores.length === 1 ? "storelist.count_one" : "storelist.count_other"), {
+          count: String(filteredStores.length),
+        });
+
+  const withMap = mounted && leaflet !== null;
+  const layoutClasses = [
+    classes.layout,
+    withMap ? classes.withMap : "",
+    withMap && listHidden ? classes.listHidden : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <div className={classes.app}>
-      <div className={classes.container}>
-        {/* Sidebar */}
-        <div
-          className={`${classes.sidebar} ${
-            sidebarOpen ? classes.sidebarOpen : classes.sidebarClosed
-          } ${isMobile ? classes.sidebarMobile : classes.sidebarDesktop}`}
-        >
+      <div className={layoutClasses}>
+        <div className={classes.sidebar} id={ids.sidebar}>
           <div className={classes.sidebarHeader}>
-            <h1 className={classes.title}>{title}</h1>
-            <div className={classes.headerActions}>
-              <button className={classes.resetButton} onClick={handleResetStores}>
+            <Heading level={headingLevel} className={classes.welcomeTitle}>
+              {welcomeTitle || title}
+            </Heading>
+            {mounted && (
+              <button type="button" className={classes.resetButton} onClick={handleReset}>
                 {t("storelist.reset")}
+                <span className={classes.visuallyHidden}> {t("storelist.resetHint")}</span>
               </button>
-              {isMobile && (
-                <button className={classes.closeButton} onClick={() => setSidebarOpen(false)}>
-                  ✕
-                </button>
-              )}
-            </div>
+            )}
           </div>
+          {welcomeMessage && <p className={classes.welcomeMessage}>{welcomeMessage}</p>}
 
-          {(welcomeTitle || welcomeMessage) && (
-            <div className={classes.welcomeBlock}>
-              {welcomeTitle && <h2 className={classes.welcomeTitle}>{welcomeTitle}</h2>}
-              {welcomeMessage && <p className={classes.welcomeMessage}>{welcomeMessage}</p>}
-            </div>
-          )}
-
-          <div className={classes.searchContainer}>
-            <SearchBar query={searchQuery} setQuery={setSearchQuery} />
-          </div>
-
-          <div className={classes.storeListContainer}>
-            <StoreList
-              stores={filteredStores}
-              selectedStore={selectedStore}
-              onStoreSelect={handleStoreSelect}
+          {mounted && (
+          <form
+            role="search"
+            className={classes.searchForm}
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <label htmlFor={ids.search} className={classes.searchLabel}>
+              {t("searchbar.label")}
+            </label>
+            <input
+              ref={searchRef}
+              id={ids.search}
+              type="search"
+              className={classes.searchInput}
+              placeholder={t("searchbar.placeholder")}
+              autoComplete="off"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
             />
-          </div>
+          </form>
+          )}
+          <p role="status" className={classes.status}>
+            {statusText}
+          </p>
+
+          {filteredStores.length > 0 && (
+            <ul className={classes.storeList} ref={listRef}>
+              {filteredStores.map((store) => (
+                <StoreListItem
+                  key={store.id}
+                  store={store}
+                  level={headingLevel + 1}
+                  interactive={mounted}
+                  isSelected={selectedId === store.id}
+                  openNow={now ? isOpenAt(store.openingHoursSpecification, now) : null}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </ul>
+          )}
         </div>
 
-        {/* Mobile Sidebar Toggle */}
-        {isMobile && !sidebarOpen && (
-          <button className={classes.toggleButton} onClick={() => setSidebarOpen(true)}>
-            ☰
-          </button>
-        )}
-
-        {/* Collapse button on Desktop */}
-        {!isMobile && (
-          <button
-            className={`${classes.collapseButton} ${
-              sidebarOpen
-                ? classes.collapseButtonOpen
-                : classes.collapseButtonClosed
-            }`}
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            ›
-          </button>
-        )}
-
-        {/* Map + Store Details */}
-        <div className={classes.mapContainer}>
+        <div className={classes.mapColumn} hidden={!withMap}>
+          {withMap && (
+            <button
+              type="button"
+              className={classes.toggleButton}
+              aria-expanded={!listHidden}
+              aria-controls={ids.sidebar}
+              onClick={() => setListHidden((v) => !v)}
+            >
+              {listHidden ? t("storelist.showList") : t("storelist.hideList")}
+            </button>
+          )}
+          <p id={ids.mapNote} className={classes.visuallyHidden}>
+            {t("map.note")}
+          </p>
           <StoreMap
-            leafletDeps={leafletDeps}
-            resetToken={resetToken}
+            leaflet={leaflet}
             stores={filteredStores}
             selectedStore={selectedStore}
-            onStoreSelect={handleStoreSelect}
-            debug={!leafletDeps}
+            resetToken={resetToken}
+            layoutToken={listHidden}
+            noteId={ids.mapNote}
+            onSelect={handleSelect}
           />
-          
-          {selectedStore && showStoreDetails && (
-            <div className={classes.storeDetailsContainer}>
-              <StoreDetails store={selectedStore} onClose={handleCloseDetails} />
-            </div>
+
+          {selectedStore && detailsOpen && (
+            <section
+              className={classes.details}
+              aria-labelledby={ids.details}
+              onKeyDown={(event: ReactKeyboardEvent) => {
+                if (event.key === "Escape") {
+                  event.stopPropagation();
+                  handleCloseDetails();
+                }
+              }}
+            >
+              <div className={classes.detailsHeader}>
+                <Heading
+                  level={headingLevel + 1}
+                  className={classes.detailTitle}
+                  id={ids.details}
+                  tabIndex={-1}
+                >
+                  {selectedStore.name}
+                </Heading>
+                <button type="button" className={classes.closeButton} onClick={handleCloseDetails}>
+                  <span aria-hidden="true">{"✕"}</span>
+                  <span className={classes.visuallyHidden}>
+                    {fill(t("storedetails.close"), { name: selectedStore.name })}
+                  </span>
+                </button>
+              </div>
+              <div className={classes.detailsBody}>
+                {selectedStore.image && (
+                  <img src={selectedStore.image} alt="" className={classes.image} loading="lazy" />
+                )}
+                <StoreInfo
+                  store={selectedStore}
+                  level={headingLevel + 2}
+                  translation={translation}
+                  openNow={now ? isOpenAt(selectedStore.openingHoursSpecification, now) : null}
+                  idPrefix={ids.details}
+                />
+              </div>
+              {selectedStore.pageUrl && (
+                <p className={classes.pageLink}>
+                  <a href={selectedStore.pageUrl} className={classes.infoLink}>
+                    {t("storedetails.storePage")}
+                    <span className={classes.visuallyHidden}>: {selectedStore.name}</span>
+                  </a>
+                </p>
+              )}
+            </section>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-// Search Bar Component
-function SearchBar({ query, setQuery }: { query: string; setQuery: (q: string) => void }) {
-  const { t } = useStoreLocatorTranslation();
-
-  return (
-    <div className={classes.searchForm}>
-      <div className={classes.inputContainer}>
-        <span className={classes.searchIcon}>🔍</span>
-        <input
-          type="text"
-          className={classes.searchInput}
-          placeholder={t("searchbar.placeholder")}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
-    </div>
-  );
-}
-
-// Store List Component
-function StoreList({
-  stores,
-  selectedStore,
-  onStoreSelect,
-}: {
-  stores: Store[];
-  selectedStore: Store | null;
-  onStoreSelect: (store: Store) => void;
-}) {
-  const { t } = useStoreLocatorTranslation();
-
-  if (stores.length === 0) {
-    return (
-      <div className={classes.noStores}>
-        <p>{t("storelist.nostore")}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className={classes.storeListWrapper}>
-      {stores.map((store) => (
-        <StoreListItem
-          key={store.id}
-          store={store}
-          isSelected={selectedStore?.id === store.id}
-          onSelect={() => onStoreSelect(store)}
-        />
-      ))}
     </div>
   );
 }
 
 function StoreListItem({
   store,
+  level,
+  interactive,
   isSelected,
+  openNow,
   onSelect,
 }: {
   store: Store;
+  level: number;
+  interactive: boolean;
   isSelected: boolean;
-  onSelect: () => void;
+  openNow: boolean | null;
+  onSelect: (store: Store) => void;
 }) {
   const { t } = useStoreLocatorTranslation();
-  const isOpen = isStoreOpen(store);
+  const location = storeLocation(store);
+  const hasHours = store.openingHoursSpecification.length > 0;
+
+  return (
+    <li className={isSelected ? `${classes.storeItem} ${classes.storeItemSelected}` : classes.storeItem}>
+      <div className={classes.itemText}>
+        <Heading level={level} className={classes.storeName}>
+          {interactive ? (
+            <button
+              type="button"
+              className={classes.storeButton}
+              aria-pressed={isSelected}
+              data-store-id={store.id}
+              onClick={() => onSelect(store)}
+            >
+              {store.name}
+            </button>
+          ) : store.pageUrl ? (
+            <a href={store.pageUrl} className={classes.storeButton}>
+              {store.name}
+            </a>
+          ) : (
+            store.name
+          )}
+        </Heading>
+        {location && <p className={classes.storeLocation}>{location}</p>}
+      </div>
+      {hasHours && openNow !== null && (
+        <span className={openNow ? classes.openBadge : classes.closedBadge}>
+          <span aria-hidden="true" className={classes.statusIcon}>
+            {openNow ? "●" : "○"}
+          </span>{" "}
+          {openNow ? t("storelist.open") : t("storelist.closed")}
+        </span>
+      )}
+    </li>
+  );
+}
+
+function StoreMap({
+  leaflet,
+  stores,
+  selectedStore,
+  resetToken,
+  layoutToken,
+  noteId,
+  onSelect,
+}: {
+  leaflet: LeafletDeps | null;
+  stores: Store[];
+  selectedStore: Store | null;
+  resetToken: number;
+  layoutToken: boolean;
+  noteId: string;
+  onSelect: (store: Store) => void;
+}) {
+  const { t } = useStoreLocatorTranslation();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<Leaflet.Map | null>(null);
+  const layerRef = useRef<Leaflet.LayerGroup | null>(null);
+
+  // Create the map once Leaflet is loaded.
+  useEffect(() => {
+    if (!leaflet || !containerRef.current || mapRef.current) return;
+    const { L } = leaflet;
+    const reduced = prefersReducedMotion();
+    const map = L.map(containerRef.current, {
+      center: DEFAULT_CENTER,
+      zoom: 12,
+      zoomControl: false,
+      zoomAnimation: !reduced,
+      fadeAnimation: !reduced,
+      markerZoomAnimation: !reduced,
+    });
+    L.control
+      .zoom({ zoomInTitle: t("map.zoomIn"), zoomOutTitle: t("map.zoomOut") })
+      .addTo(map);
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> ${t(
+        "map.contributors",
+      )}`,
+    }).addTo(map);
+    mapRef.current = map;
+    layerRef.current = L.layerGroup().addTo(map);
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      layerRef.current = null;
+    };
+  }, [leaflet, t]);
+
+  // One keyboard-reachable marker per store, named by the store.
+  useEffect(() => {
+    const map = mapRef.current;
+    const layer = layerRef.current;
+    if (!leaflet || !map || !layer) return;
+    const { L, icon } = leaflet;
+    layer.clearLayers();
+    const located = stores.filter((store) => store.geo);
+    for (const store of located) {
+      const { latitude, longitude } = store.geo!;
+      const label = [store.name, storeLocation(store)].filter(Boolean).join(", ");
+      L.marker([latitude, longitude], { icon, alt: label, title: label, keyboard: true })
+        .on("click", () => onSelect(store))
+        // A marker has the button role: Enter and Space activate it like a click.
+        .on("keypress", (event: Leaflet.LeafletKeyboardEvent) => {
+          const { key } = event.originalEvent;
+          if (key === "Enter" || key === " ") {
+            event.originalEvent.preventDefault();
+            onSelect(store);
+          }
+        })
+        .addTo(layer);
+    }
+    if (located.length > 0) {
+      const bounds = L.latLngBounds(
+        located.map((store) => [store.geo!.latitude, store.geo!.longitude] as [number, number]),
+      );
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14, animate: !prefersReducedMotion() });
+    } else {
+      map.setView(DEFAULT_CENTER, 5, { animate: false });
+    }
+  }, [leaflet, stores, onSelect, resetToken]);
+
+  // Follow the selected store.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selectedStore?.geo) return;
+    const target: [number, number] = [selectedStore.geo.latitude, selectedStore.geo.longitude];
+    if (prefersReducedMotion()) map.setView(target, 13, { animate: false });
+    else map.flyTo(target, 13, { duration: 0.5 });
+  }, [selectedStore]);
+
+  // The map changes size when the list is hidden or shown.
+  useEffect(() => {
+    mapRef.current?.invalidateSize();
+  }, [layoutToken]);
 
   return (
     <div
-      className={isSelected ? classes.storeItemSelected : classes.storeItem}
-      onClick={onSelect}
-    >
-      <div className={classes.itemContent}>
-        <div>
-          <h3 className={isSelected ? `${classes.storeName} ${classes.storeNameSelected}` : classes.storeName}>
-            {store.name}
-          </h3>
-          <p className={classes.storeLocation}>
-            {store.address.addressLocality}
-            {store.address.addressRegion ? `, ${store.address.addressRegion}` : ""}
-          </p>
-        </div>
-        {store.openingHoursSpecification && (
-          <div>
-            <span className={isOpen ? classes.openBadge : classes.closedBadge}>
-              {isOpen ? t("storelist.open") : t("storelist.closed")}
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
+      ref={containerRef}
+      className={classes.map}
+      role="region"
+      aria-label={t("map.label")}
+      aria-describedby={noteId}
+    />
   );
-}
-
-// Store Map Component
-function StoreMap({
-  leafletDeps,
-  resetToken,
-  stores,
-  selectedStore,
-  onStoreSelect,
-  debug,
-}: {
-  leafletDeps: {
-    L: any;
-    defaultIcon: any;
-  } | null;
-  resetToken: number;
-  stores: Store[];
-  selectedStore: Store | null;
-  onStoreSelect: (store: Store) => void;
-  debug: boolean;
-}) {
-  if (!leafletDeps) {
-    if (debug) {
-      console.warn("[store-locator] Leaflet dependencies not ready yet");
-    }
-    return <div className={classes.loadingMap}>Loading map...</div>;
-  }
-
-  const { L, defaultIcon } = leafletDeps;
-
-  const defaultCenter: [number, number] = [48.8566, 2.3522];
-
-  const mapRef = useRef<HTMLDivElement | null>(null);
-  const leafletMapRef = useRef<any>(null);
-  const markersLayerRef = useRef<any>(null);
-
-  useEffect(() => {
-    if (!mapRef.current || leafletMapRef.current) return;
-    const map = L.map(mapRef.current, {
-      center: defaultCenter,
-      zoom: 12,
-      zoomControl: true,
-    });
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map);
-    leafletMapRef.current = map;
-    markersLayerRef.current = L.layerGroup().addTo(map);
-  }, [L, defaultCenter]);
-
-  useEffect(() => {
-    const map = leafletMapRef.current;
-    const layer = markersLayerRef.current;
-    if (!map || !layer) return;
-
-    layer.clearLayers();
-    stores.forEach((store) => {
-      const marker = L.marker([store.geo.latitude, store.geo.longitude], { icon: defaultIcon });
-      marker.on("click", () => onStoreSelect(store));
-      marker.bindTooltip(
-        `${store.name}<br />${store.address.addressLocality}${store.address.addressRegion ? `, ${store.address.addressRegion}` : ""}`,
-        { direction: "top", offset: [0, -20], opacity: 1 },
-      );
-      marker.addTo(layer);
-    });
-
-    if (stores.length > 0) {
-      const bounds = L.latLngBounds(
-        stores.map((store) => [store.geo.latitude, store.geo.longitude] as [number, number]),
-      );
-      map.fitBounds(bounds, { padding: [40, 40] });
-    } else {
-      map.setView(defaultCenter, 12);
-    }
-  }, [stores, onStoreSelect, defaultIcon, L, resetToken]);
-
-  useEffect(() => {
-    const map = leafletMapRef.current;
-    if (map && selectedStore) {
-      map.flyTo([selectedStore.geo.latitude, selectedStore.geo.longitude], 13, { duration: 0.5 });
-    }
-  }, [selectedStore]);
-
-  return <div className={classes.map} ref={mapRef} />;
-}
-
-// Store Details Component
-function StoreDetails({ store, onClose }: { store: Store; onClose: () => void }) {
-  const { t, language } = useStoreLocatorTranslation();
-  const locale = language;
-
-  const formatAddress = () => {
-    const { streetAddress, addressLocality, addressRegion, postalCode } = store.address;
-    return `${streetAddress}, ${addressLocality}, ${addressRegion} ${postalCode}`;
-  };
-
-  const groupedHours = groupOpeningHours(store.openingHoursSpecification || [], t, locale);
-  const isOpen = isStoreOpenNow(store);
-
-  return (
-    <div className={classes.card}>
-      <div className={classes.cardContent}>
-        <div className={classes.flexRow}>
-          {/* Column 1: Image */}
-          {store.image && (
-            <div className={classes.columnQuarter}>
-              <div className={classes.imageContainer}>
-                <img
-                  src={store.image}
-                  alt={store.name}
-                  className={classes.image}
-                />
-                <button onClick={onClose} className={classes.closeButton}>
-                  ✕
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className={classes.verticalDivider} />
-
-          {/* Column 2: Name & Description */}
-          <div className={classes.columnQuarter}>
-            <h2 className={classes.detailTitle}>{store.name}</h2>
-            {store.description && <p className={classes.description}>{store.description}</p>}
-            
-            {store.amenityFeature && store.amenityFeature.length > 0 && (
-              <div className={classes.amenities}>
-                <div className={classes.amenityHeader}>
-                  <span className={classes.amenityIcon}>♿</span>
-                  <h3 className={classes.amenityTitle}>{t("storedetails.amenities")}</h3>
-                </div>
-                <div className={classes.badgeContainer}>
-                  {store.amenityFeature.map((amenity) => (
-                    <span key={amenity} className={classes.badge}>
-                      {amenity}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className={classes.verticalDivider} />
-
-          {/* Column 3: Address & Contact */}
-          <div className={classes.columnQuarter}>
-            <div className={classes.infoSection}>
-              <span className={classes.infoIcon}>📍</span>
-              <div>
-                <h3 className={classes.infoTitle}>{t("storedetails.address")}</h3>
-                <p className={classes.infoContent}>{formatAddress()}</p>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${store.geo.latitude},${store.geo.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={classes.infoLink}
-                >
-                  {t("storedetails.directions")}
-                </a>
-              </div>
-            </div>
-
-            {store.telephone && (
-              <div className={classes.contactItem}>
-                <span className={classes.contactIcon}>📞</span>
-                <a href={`tel:${store.telephone}`} className={classes.contactLink}>
-                  {store.telephone}
-                </a>
-              </div>
-            )}
-
-            {store.url && (
-              <div className={classes.contactItem}>
-                <span className={classes.contactIcon}>🌐</span>
-                <a
-                  href={store.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={classes.contactLink}
-                >
-                  {t("storedetails.website")}
-                </a>
-              </div>
-            )}
-          </div>
-
-          <div className={classes.verticalDivider} />
-
-          {/* Column 4: Hours */}
-          {store.openingHoursSpecification && (
-            <div className={classes.columnQuarter}>
-              <div className={classes.infoSection}>
-                <span className={classes.infoIcon}>🕒</span>
-                <div>
-                  <div className={classes.hoursHeader}>
-                    <h3 className={classes.hoursTitle}>{t("storedetails.hours")}</h3>
-                    <span className={isOpen ? classes.open : classes.closed}>
-                      {isOpen ? t("storedetails.open") : t("storedetails.closed")}
-                    </span>
-                  </div>
-                  <div>
-                    {groupedHours.map((group, i) => (
-                      <div key={i} className={classes.hoursItem}>
-                        <span>{group.days}</span>
-                        <span>{group.hours}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Helper functions
-function isStoreOpen(store: Store): boolean {
-  if (!store.openingHoursSpecification || store.openingHoursSpecification.length === 0) {
-    return false;
-  }
-
-  const now = new Date();
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const today = days[now.getDay()];
-
-  const todayHours = store.openingHoursSpecification.find((spec) => spec.dayOfWeek === today);
-
-  if (!todayHours) return false;
-
-  const currentTime = now.getHours() * 100 + now.getMinutes();
-  const opensTime = parseInt(todayHours.opens.replace(":", ""));
-  const closesTime = parseInt(todayHours.closes.replace(":", ""));
-
-  return currentTime >= opensTime && currentTime < closesTime;
-}
-
-function isStoreOpenNow(store: Store): boolean {
-  return isStoreOpen(store);
-}
-
-function groupOpeningHours(
-  hours: Array<{ dayOfWeek: string; opens: string; closes: string }>,
-  t: (key: string) => string,
-  locale: string
-): Array<{ days: string; hours: string }> {
-  const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-  const sortedHours = [...hours].sort(
-    (a, b) => daysOrder.indexOf(a.dayOfWeek) - daysOrder.indexOf(b.dayOfWeek)
-  );
-
-  const result: Array<{ days: string; hours: string }> = [];
-  let currentGroup: typeof hours = [];
-
-  sortedHours.forEach((hour, index) => {
-    if (
-      index === 0 ||
-      hour.opens !== sortedHours[index - 1].opens ||
-      hour.closes !== sortedHours[index - 1].closes
-    ) {
-      if (currentGroup.length > 0) {
-        result.push(formatHourGroup(currentGroup, t, locale));
-        currentGroup = [];
-      }
-      currentGroup.push(hour);
-    } else {
-      currentGroup.push(hour);
-    }
-
-    if (index === sortedHours.length - 1 && currentGroup.length > 0) {
-      result.push(formatHourGroup(currentGroup, t, locale));
-    }
-  });
-
-  return result;
-}
-
-function formatHourGroup(
-  group: Array<{ dayOfWeek: string; opens: string; closes: string }>,
-  t: (key: string) => string,
-  locale: string
-): { days: string; hours: string } {
-  const days = group.map((h) => h.dayOfWeek);
-  let daysText = "";
-
-  const translateDay = (day: string) => t(`days.${day.toLowerCase()}`);
-
-  if (days.length === 1) {
-    daysText = translateDay(days[0]);
-  } else if (days.length === 7) {
-    daysText = t("days.everyday");
-  } else if (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].every((d) => days.includes(d)) && days.length === 5) {
-    daysText = t("days.weekdays");
-  } else if (days.includes("Saturday") && days.includes("Sunday") && days.length === 2) {
-    daysText = t("days.weekends");
-  } else {
-    daysText = days.map(translateDay).join(", ");
-  }
-
-  const hours =
-    group[0].opens === "00:00" && group[0].closes === "23:59"
-      ? t("storedetails.allday")
-      : `${formatTime(group[0].opens, locale)} - ${formatTime(group[0].closes, locale)}`;
-
-  return { days: daysText, hours };
-}
-
-function formatTime(time: string, locale: string = "en"): string {
-  const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours);
-  date.setMinutes(minutes);
-
-  return new Intl.DateTimeFormat(locale, {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
 }

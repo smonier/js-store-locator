@@ -1,551 +1,558 @@
-/* Main Container */
+/*
+ * Store locator. Every colour, radius and shadow reads a --jsstoreloc-* custom property, with the
+ * module's own light look as the fallback, so a host theme can map them to its tokens. The app
+ * keeps a light panel by default: it sets its own text colour and colour scheme, so it stays
+ * readable when the page around it is dark.
+ */
 .app {
+  --_text: var(--jsstoreloc-color-text, #1e293b);
+  --_text-muted: var(--jsstoreloc-color-text-muted, #475569);
+  --_surface: var(--jsstoreloc-color-surface, #ffffff);
+  --_surface-alt: var(--jsstoreloc-color-surface-alt, #f8fafc);
+  --_border: var(--jsstoreloc-color-border, #e2e8f0);
+  --_border-strong: var(--jsstoreloc-color-border-strong, #64748b);
+  --_accent: var(--jsstoreloc-color-accent, #1d4ed8);
+  --_accent-subtle: var(--jsstoreloc-color-accent-subtle, #eff6ff);
+  --_focus: var(--jsstoreloc-color-focus, #1d4ed8);
+  --_open-bg: var(--jsstoreloc-color-open-bg, #dcfce7);
+  --_open-text: var(--jsstoreloc-color-open-text, #166534);
+  --_closed-bg: var(--jsstoreloc-color-closed-bg, #fee2e2);
+  --_closed-text: var(--jsstoreloc-color-closed-text, #991b1b);
+  --_radius: var(--jsstoreloc-radius, 0.375rem);
+  --_shadow: var(--jsstoreloc-shadow, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+
+  container-type: inline-size;
   width: 100%;
-  font-family:
-    system-ui,
-    -apple-system,
-    sans-serif;
-  margin-top: 50px;
-  margin-bottom: 50px;
+  color-scheme: var(--jsstoreloc-color-scheme, light);
+  color: var(--_text);
+  font-family: var(--jsstoreloc-font-family, inherit);
+  line-height: 1.5;
 }
 
-.container {
-  position: relative;
-  max-width: 1600px;
-  margin: 0 auto;
-  max-height: 800px;
+.app :focus-visible {
+  outline: 3px solid var(--_focus);
+  outline-offset: 2px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
   overflow: hidden;
-  background-color: #f8fafc;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  display: flex;
-  border: 1px solid #e2e8f0;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Layout: one column; two panes (list | map) when the app is wide enough and the map runs. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  background-color: var(--_surface);
+  border: 1px solid var(--_border);
+  box-shadow: var(--_shadow);
+}
+
+@container (min-width: 48rem) {
+  .withMap {
+    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
+  }
+
+  .withMap.listHidden {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .withMap.listHidden .sidebar {
+    display: none;
+  }
+
+  .withMap .sidebar {
+    border-right: 1px solid var(--_border);
+    border-bottom: 0;
+  }
+
+  .withMap .storeList {
+    max-height: 36rem;
+    overflow-y: auto;
+  }
+
+  .withMap .mapColumn {
+    min-height: 32rem;
+  }
+
+  .withMap .details {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: 70%;
+    overflow-y: auto;
+  }
+}
+
+/* Below the two-pane width, the list stays visible: the toggle only applies side by side. */
+@container (max-width: 47.99rem) {
+  .toggleButton {
+    display: none;
+  }
 }
 
 /* Sidebar */
 .sidebar {
-  height: 100%;
-  z-index: 10;
-  background-color: white;
-  box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.sidebarOpen {
-  width: 24rem;
-  max-width: 90vw;
-}
-
-.sidebarClosed {
-  width: 0;
-}
-
-.sidebarMobile {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-}
-
-.sidebarDesktop {
-  position: relative;
+  min-width: 0;
+  background-color: var(--_surface);
+  border-bottom: 1px solid var(--_border);
 }
 
 .sidebarHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #3b82f6;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.resetButton {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  color: #1e293b;
-}
-
-.resetButton:hover {
-  background-color: #f1f5f9;
-}
-
-.closeButton {
-  padding: 0.25rem 0.5rem;
-  background-color: transparent;
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-}
-
-.closeButton:hover {
-  background-color: #f1f5f9;
-}
-
-.searchContainer {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.welcomeBlock {
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
+  gap: 0.5rem 1rem;
+  padding: 1rem 1rem 0.25rem;
 }
 
 .welcomeTitle {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
+  margin: 0;
+  color: var(--_text);
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
+  line-height: 1.3;
 }
 
 .welcomeMessage {
   margin: 0;
+  padding: 0 1rem;
+  color: var(--_text-muted);
   font-size: 0.875rem;
-  color: #475569;
-  line-height: 1.4;
 }
 
-.storeListContainer {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem 1rem 2rem;
-  max-height: 650px;
-  scrollbar-gutter: stable;
+.resetButton,
+.toggleButton {
+  min-height: 2.75rem;
+  padding: 0.25rem 0.75rem;
+  color: var(--_text);
+  font: inherit;
+  font-size: 0.875rem;
+  background-color: var(--_surface);
+  border: 1px solid var(--_border-strong);
+  border-radius: var(--_radius);
+  cursor: pointer;
 }
 
-/* Search Bar */
+.resetButton:hover,
+.toggleButton:hover {
+  background-color: var(--_surface-alt);
+}
+
+/* Search */
 .searchForm {
-  width: 100%;
-}
-
-.inputContainer {
-  position: relative;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 1rem 1rem 0;
 }
 
-.searchIcon {
-  position: absolute;
-  left: 0.75rem;
-  color: #64748b;
+.searchLabel {
+  color: var(--_text);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .searchInput {
+  box-sizing: border-box;
   width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--_text);
+  font: inherit;
+  font-size: 1rem;
+  background-color: var(--_surface);
+  border: 1px solid var(--_border-strong);
+  border-radius: var(--_radius);
+}
+
+.searchInput::placeholder {
+  color: var(--_text-muted);
+  opacity: 1;
+}
+
+.status {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  color: var(--_text-muted);
   font-size: 0.875rem;
 }
 
-.searchInput:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 0;
-}
-
-/* Store List */
-.storeListWrapper {
-  margin-bottom: 100px;
+/* Store list */
+.storeList {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-bottom: 1rem;
-}
-
-.noStores {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #64748b;
+  margin: 0;
+  padding: 0 1rem 1rem;
+  list-style: none;
 }
 
 .storeItem {
-  padding: 1rem;
-  cursor: pointer;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-  background-color: white;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--_surface);
+  border: 1px solid var(--_border-strong);
+  border-left-width: 4px;
+  border-radius: var(--_radius);
 }
 
 .storeItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--_surface-alt);
 }
 
-.storeItemSelected {
-  padding: 1rem;
-  cursor: pointer;
-  border: 1px solid #3b82f6;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
-  background-color: rgba(59, 130, 246, 0.05);
+.storeItemSelected,
+.storeItemSelected:hover {
+  background-color: var(--_accent-subtle);
+  border-color: var(--_accent);
+  border-left-width: 8px;
 }
 
-.itemContent {
-  display: flex;
-  justify-content: space-between;
-}
-
-.storeName {
-  font-weight: 500;
-  color: #1e293b;
-  font-size: 1rem;
-  margin-bottom: 0;
-}
-
-.storeNameSelected {
-  color: #3b82f6;
-}
-
-.storeLocation {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0;
-}
-
-.openBadge {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  background-color: #dcfce7;
-  color: #166534;
-  display: inline-block;
-}
-
-.closedBadge {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  background-color: #fee2e2;
-  color: #991b1b;
-  display: inline-block;
-}
-
-/* Map */
-.mapContainer {
-  flex: 1;
-  position: relative;
-  max-height: 800px;
-  width: 100%;
-  min-height: 400px;
-}
-
-.map {
-  height: 100%;
-  width: 100%;
-  min-height: 400px;
-}
-
-.loadingMap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #64748b;
-}
-
-:global(.leaflet-tooltip) {
-  background-color: #111827;
-  color: #f8fafc;
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.4rem 0.6rem;
-  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.35);
-  white-space: nowrap;
-  max-width: none;
-}
-
-:global(.leaflet-tooltip-top:before),
-:global(.leaflet-tooltip-bottom:before),
-:global(.leaflet-tooltip-left:before),
-:global(.leaflet-tooltip-right:before) {
-  border-top-color: #111827;
-  border-bottom-color: #111827;
-  border-left-color: #111827;
-  border-right-color: #111827;
-}
-
-/* Toggle Buttons */
-.toggleButton {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 20;
-  background-color: white;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.375rem;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.collapseButton {
-  position: absolute;
-  top: 50%;
-  z-index: 20;
-  background-color: white;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition: all 0.3s ease;
-}
-
-.collapseButtonOpen {
-  left: 24rem;
-  transform: translateY(-50%) rotate(180deg);
-}
-
-.collapseButtonClosed {
-  left: 0;
-}
-
-/* Store Details */
-.storeDetailsContainer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1100;
-  background-color: white;
-  box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
-}
-
-.card {
-  background-color: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-.cardContent {
-  padding: 1rem;
-}
-
-.flexRow {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-}
-
-.columnQuarter {
-  flex: 1;
+.itemText {
   min-width: 0;
 }
 
-.imageContainer {
-  position: relative;
-  width: 100%;
-  height: 10rem;
-  border-radius: 0.375rem;
-  overflow: hidden;
+.storeName {
+  margin: 0;
+  color: var(--_text);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.closeButton {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 9999px;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* The store name is the control; its hit area covers the whole card. */
+.storeButton {
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  background: none;
+  border: 0;
   cursor: pointer;
-  border: none;
 }
 
-.closeButton:hover {
-  background-color: rgba(0, 0, 0, 0.4);
+.storeButton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.storeItemSelected .storeName {
+  color: var(--_accent);
+}
+
+.storeLocation {
+  margin: 0;
+  color: var(--_text-muted);
+  font-size: 0.875rem;
+}
+
+.openBadge,
+.closedBadge,
+.open,
+.closed {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 9999px;
+}
+
+.openBadge,
+.open {
+  color: var(--_open-text);
+  background-color: var(--_open-bg);
+}
+
+.closedBadge,
+.closed {
+  color: var(--_closed-text);
+  background-color: var(--_closed-bg);
+}
+
+.statusIcon {
+  font-size: 0.75em;
+}
+
+/* Map */
+.mapColumn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 22rem;
+}
+
+.mapColumn[hidden] {
+  display: none;
+}
+
+.map {
+  flex: 1;
+  width: 100%;
+  min-height: 22rem;
+}
+
+.toggleButton {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1000;
+  box-shadow: var(--_shadow);
+}
+
+/* Leaflet: controls on the app's tokens, keyboard focus visible over the tiles. */
+.app :global(.leaflet-container) {
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.app :global(.leaflet-container a.leaflet-control-zoom-in),
+.app :global(.leaflet-container a.leaflet-control-zoom-out) {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--_text);
+  line-height: 2.25rem;
+}
+
+.app :global(.leaflet-control-attribution) {
+  color: var(--_text);
+  background-color: rgb(255 255 255 / 0.9);
+}
+
+.app :global(.leaflet-control-attribution a) {
+  color: var(--_accent);
+}
+
+.app :global(.leaflet-marker-icon:focus-visible) {
+  outline: 3px solid var(--_focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--_surface);
+}
+
+/* Store details */
+.details {
+  z-index: 1100;
+  background-color: var(--_surface);
+  border-top: 1px solid var(--_border-strong);
+  box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0;
 }
 
 .detailTitle {
+  margin: 0;
+  color: var(--_text);
   font-size: 1.125rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.closeButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: var(--_text);
+  font-size: 1rem;
+  background-color: var(--_surface);
+  border: 1px solid var(--_border-strong);
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background-color: var(--_surface-alt);
+}
+
+.detailsBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.image {
+  flex: 0 1 14rem;
+  width: 14rem;
+  max-width: 100%;
+  height: 10rem;
+  object-fit: cover;
+  border-radius: var(--_radius);
+}
+
+.pageLink {
+  margin: 0;
+  padding: 0 1rem 1rem;
+}
+
+/* Store information (details panel and store views) */
+.info {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  min-width: 0;
+  color: var(--_text);
 }
 
 .description {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--_text-muted);
+  font-size: 0.9375rem;
+}
+
+.infoSection {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.infoTitle {
+  margin: 0 0 0.25rem;
+  color: var(--_text);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.infoContent {
+  margin: 0 0 0.25rem;
   font-size: 0.875rem;
-  color: #64748b;
 }
 
-.amenities {
-  margin-top: 0.5rem;
-}
-
-.amenityHeader {
-  display: flex;
-  align-items: center;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.amenityIcon {
-  margin-right: 0.5rem;
-}
-
-.amenityTitle {
+.infoLink {
+  color: var(--_accent);
   font-size: 0.875rem;
-  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+
+.infoLink:hover {
+  text-decoration-thickness: 2px;
+}
+
+.plainList {
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+  list-style: none;
 }
 
 .badgeContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .badge {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.8125rem;
+  border: 1px solid var(--_border-strong);
   border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-}
-
-.verticalDivider {
-  width: 1px;
-  background-color: #e2e8f0;
-}
-
-.infoSection {
-  display: flex;
-  align-items: start;
-  margin-bottom: 1rem;
-}
-
-.infoIcon {
-  margin-right: 0.5rem;
-  margin-top: 0.125rem;
-}
-
-.infoTitle {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.infoContent {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
-.infoLink {
-  font-size: 0.75rem;
-  color: #3b82f6;
-  display: inline-block;
-  margin-top: 0.25rem;
-}
-
-.infoLink:hover {
-  color: #2563eb;
-  text-decoration: underline;
-}
-
-.contactItem {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.contactIcon {
-  margin-right: 0.5rem;
-}
-
-.contactLink {
-  font-size: 0.875rem;
-}
-
-.contactLink:hover {
-  text-decoration: underline;
 }
 
 .hoursHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
 
-.hoursTitle {
+.hoursHeader .infoTitle {
+  margin: 0;
+}
+
+.hoursTable {
+  border-collapse: collapse;
   font-size: 0.875rem;
-  font-weight: 500;
 }
 
-.open {
-  display: inline-block;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  background-color: #dcfce7;
-  color: #166534;
+.hoursTable th,
+.hoursTable td {
+  padding: 0.125rem 1rem 0.125rem 0;
+  text-align: start;
+  vertical-align: top;
 }
 
-.closed {
-  display: inline-block;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  background-color: #fee2e2;
-  color: #991b1b;
+.hoursTable th {
+  font-weight: 600;
 }
 
-.hoursItem {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-bottom: 0.25rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .flexRow {
-    flex-direction: column;
+@media (prefers-reduced-motion: no-preference) {
+  .storeItem,
+  .resetButton,
+  .toggleButton,
+  .closeButton {
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
+}
 
-  .columnQuarter {
-    width: 100%;
+@media (forced-colors: active) {
+  .storeItemSelected {
+    border-color: Highlight;
   }
+}
 
-  .verticalDivider {
-    display: none;
-  }
+/* A store rendered on the server (its own page, or placed on a page). It is page content, not
+   the light panel: it takes the host's colours unless the --jsstoreloc-* properties are set. */
+.storeView {
+  --_text: var(--jsstoreloc-color-text, currentColor);
+  --_text-muted: var(--jsstoreloc-color-text-muted, currentColor);
+  --_accent: var(--jsstoreloc-color-accent, currentColor);
+  --_border-strong: var(--jsstoreloc-color-border-strong, currentColor);
+  --_focus: var(--jsstoreloc-color-focus, currentColor);
+
+  padding: 1rem 0;
+  color-scheme: inherit;
+  color: inherit;
+}
+
+.storeView .detailsBody {
+  padding: 1rem 0 0;
+}
+
+.storeViewTitle {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.storeViewLink {
+  color: inherit;
 }

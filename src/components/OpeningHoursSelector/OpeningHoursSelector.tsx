@@ -45,7 +45,7 @@ const formatOpeningHourValue = (value: string | null): OpeningHoursValue => {
       opens: parsed.opens || defaultValue.opens,
       closes: parsed.closes || defaultValue.closes,
     };
-  } catch (_) {
+  } catch {
     return defaultValue;
   }
 };

@@ -107,7 +107,6 @@ export default jahiaComponent(
 
     return (
       <>
-        <AddResources type="css" resources="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <AddResources type="css" resources={buildModuleFileUrl("dist/assets/style.css")} />
         <Island
           clientOnly={true}

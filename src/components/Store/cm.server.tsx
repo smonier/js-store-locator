@@ -50,7 +50,6 @@ export default jahiaComponent(
     return (
       <div className={styles.simpleCard}>
         <AddResources type="css" resources={buildModuleFileUrl("dist/assets/style.css")} />
-        <AddResources type="css" resources="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
         <div className={styles.heroSection}>
           {imageUrl ? (

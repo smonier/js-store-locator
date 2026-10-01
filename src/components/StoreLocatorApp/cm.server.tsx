@@ -21,7 +21,6 @@ export default jahiaComponent(
 
     return (
       <div className={`${styles.card} ${styles.cardBorderPrimary}`}>
-        <AddResources type="css" resources="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <div className={`${styles.cardHeader} ${styles.cardHeaderPrimary}`}>
           <h5 className={`${styles.cardTitle} ${styles.mb0}`}>
             <svg

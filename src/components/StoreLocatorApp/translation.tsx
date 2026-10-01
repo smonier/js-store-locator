@@ -17,13 +17,13 @@ const normalizeLocale = (locale?: string | null): Locale => {
   return normalized === "fr" ? "fr" : "en";
 };
 
-const getValue = (target: any, path: string[]): string | undefined => {
+const getValue = (target: unknown, path: string[]): string | undefined => {
   let current = target;
   for (const segment of path) {
-    if (typeof current !== "object" || current === null) {
+    if (typeof current !== "object" || current === null || !Object.hasOwn(current, segment)) {
       return undefined;
     }
-    current = current[segment];
+    current = (current as Record<string, unknown>)[segment];
   }
   return typeof current === "string" ? current : undefined;
 };
@@ -36,6 +36,19 @@ const translateKey = (key: string, locale: Locale, fallback?: string): string =>
     fallback ??
     key
   );
+};
+
+/** Replaces each `{name}` in a translated template with its value. */
+export const fill = (template: string, values: Record<string, string>): string =>
+  template.replace(/\{(\w+)\}/g, (match, name: string) => values[name] ?? match);
+
+/** A translator for server views, which render outside the React translation context. */
+export const createTranslator = (locale?: string | null): StoreLocatorTranslation => {
+  const language = normalizeLocale(locale);
+  return {
+    t: (key: string, fallback?: string) => translateKey(key, language, fallback),
+    language,
+  };
 };
 
 export interface StoreLocatorTranslation {
@@ -54,11 +67,7 @@ export const useStoreLocatorTranslation = () => {
     typeof window !== "undefined"
       ? (window as Window & { jahia?: { i18n?: { language?: string } } })?.jahia?.i18n?.language
       : undefined;
-  const language = normalizeLocale(jahiaLang);
-  return {
-    t: (key: string, fallback?: string) => translateKey(key, language, fallback),
-    language,
-  };
+  return createTranslator(jahiaLang);
 };
 
 export const StoreLocatorTranslationProvider: React.FC<{
@@ -66,13 +75,7 @@ export const StoreLocatorTranslationProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ locale, children }) => {
   const language = normalizeLocale(locale);
-  const value = useMemo<StoreLocatorTranslation>(
-    () => ({
-      t: (key: string, fallback?: string) => translateKey(key, language, fallback),
-      language,
-    }),
-    [language],
-  );
+  const value = useMemo<StoreLocatorTranslation>(() => createTranslator(language), [language]);
 
   return (
     <StoreLocatorTranslationContext.Provider value={value}>

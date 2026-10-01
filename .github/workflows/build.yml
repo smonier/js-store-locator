@@ -1,4 +1,4 @@
-# Build and upload the package on every push
+# Lint, test, build and upload the package on every push
 name: Build
 
 on: push
@@ -9,8 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: corepack enable
-      - run: yarn install
+      - run: yarn install --immutable
+      - run: yarn lint
+      - run: yarn test
       - run: yarn build
       - uses: actions/upload-artifact@v4
         with:

@@ -7,25 +7,40 @@
     }
   },
   "searchbar": {
-    "placeholder": "Rechercher ...",
-    "button": "rechercher"
+    "placeholder": "Nom, ville, région ou code postal",
+    "button": "rechercher",
+    "label": "Rechercher une agence"
   },
   "storelist": {
     "nostore": "Aucune agence trouvée.",
     "open": "Ouvert",
     "closed": "Fermé",
     "miles": "miles",
-    "reset": "Réinit."
+    "reset": "Réinitialiser",
+    "resetHint": "la recherche et la carte",
+    "count_one": "{count} agence",
+    "count_other": "{count} agences",
+    "hideList": "Masquer la liste",
+    "showList": "Afficher la liste"
   },
   "storedetails": {
     "address": "Adresse",
     "directions": "Itinéraire",
-    "hours": "Horaires",
-    "open": "OUVERT",
-    "closed": "FERMÉ",
+    "hours": "Horaires d'ouverture",
+    "open": "Ouvert en ce moment",
+    "closed": "Fermé en ce moment",
     "amenities": "Services",
     "website": "Visiter le site",
-    "allday": "Ouvert 24h/24"
+    "allday": "Ouvert 24h/24",
+    "to": "vers",
+    "closedDay": "Fermé",
+    "of": "de",
+    "phone": "Téléphone :",
+    "contact": "Contact",
+    "day": "Jour",
+    "timeRange": "{opens} à {closes}",
+    "close": "Fermer le détail de {name}",
+    "storePage": "Page de l'agence"
   },
   "days": {
     "monday": "Lundi",
@@ -37,11 +52,34 @@
     "sunday": "Dimanche",
     "weekdays": "En semaine",
     "weekends": "Week-end",
-    "everyday": "Tous les jours"
+    "everyday": "Tous les jours",
+    "range": "Du {from} au {to}",
+    "inRange": {
+      "monday": "lundi",
+      "tuesday": "mardi",
+      "wednesday": "mercredi",
+      "thursday": "jeudi",
+      "friday": "vendredi",
+      "saturday": "samedi",
+      "sunday": "dimanche"
+    }
   },
   "label": {
     "dayOfWeek": "Jour de la semaine",
     "opens": "Ouvre",
     "closes": "Ferme"
+  },
+  "map": {
+    "label": "Carte des agences",
+    "note": "Chaque agence de la carte figure aussi dans la liste. Utilisez les flèches pour déplacer la carte et Tab pour atteindre les repères des agences.",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "contributors": "contributeurs"
+  },
+  "cm": {
+    "empty": "Aucune agence pour l'instant. Ajoutez des agences dans le dossier des agences, ou comme enfants de ce composant.",
+    "more": "et {count} de plus",
+    "footer": "Affiche un localisateur d'agences interactif sur la page.",
+    "website": "Site web"
   }
 }

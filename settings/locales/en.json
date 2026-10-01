@@ -7,25 +7,40 @@
     }
   },
   "searchbar": {
-    "placeholder": "Search stores by name or location...",
-    "button": "search"
+    "placeholder": "Name, city, region or postal code",
+    "button": "search",
+    "label": "Search for a store"
   },
   "storelist": {
     "nostore": "No stores found.",
     "open": "Open",
     "closed": "Closed",
     "miles": "miles away",
-    "reset": "Reset"
+    "reset": "Reset",
+    "resetHint": "the search and the map",
+    "count_one": "{count} store",
+    "count_other": "{count} stores",
+    "hideList": "Hide the list",
+    "showList": "Show the list"
   },
   "storedetails": {
     "address": "Address",
-    "directions": "Get Directions",
-    "hours": "Hours",
-    "open": "OPEN NOW",
-    "closed": "CLOSED",
+    "directions": "Get directions",
+    "hours": "Opening hours",
+    "open": "Open now",
+    "closed": "Closed now",
     "amenities": "Amenities",
-    "website": "Visit Website",
-    "allday": "Open 24 hours"
+    "website": "Visit the website",
+    "allday": "Open 24 hours",
+    "to": "to",
+    "closedDay": "Closed",
+    "of": "of",
+    "phone": "Phone:",
+    "contact": "Contact",
+    "day": "Day",
+    "timeRange": "{opens} to {closes}",
+    "close": "Close the details of {name}",
+    "storePage": "Store page"
   },
   "days": {
     "monday": "Monday",
@@ -37,11 +52,34 @@
     "sunday": "Sunday",
     "weekdays": "Weekdays",
     "weekends": "Weekends",
-    "everyday": "Every day"
+    "everyday": "Every day",
+    "range": "{from} to {to}",
+    "inRange": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
   },
   "label": {
     "dayOfWeek": "Day of Week",
     "opens": "Opens",
     "closes": "Closes"
+  },
+  "map": {
+    "label": "Map of the stores",
+    "note": "Every store on the map is also in the list. Use the arrow keys to move the map and Tab to reach the store markers.",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "contributors": "contributors"
+  },
+  "cm": {
+    "empty": "No stores yet. Add stores to the stores folder, or as children of this component.",
+    "more": "and {count} more",
+    "footer": "Shows an interactive store locator on the page.",
+    "website": "Website"
   }
 }

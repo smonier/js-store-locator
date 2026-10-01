@@ -1,279 +1,127 @@
-# Store Content Examples
+# Store content examples
 
-This file provides examples of how to create store content in Jahia.
+Sample stores and opening-hours patterns for the `jsstorelocnt:store` content type. The properties are described in the [Content model](README.md#content-model) section of the README.
 
-## Example 1: Basic Store
+## Example store
 
-### Store Properties
-```
-Node Type: jsstorelocnt:store
-Name: downtown-store
+| Field                    | Value                                                 |
+| ------------------------ | ----------------------------------------------------- |
+| Node name                | `paris-rivoli`                                        |
+| Title (`jcr:title`)      | Paris Rivoli                                          |
+| Name (`name`)            | Paris Rivoli                                          |
+| Description              | Our flagship store in the centre of Paris.            |
+| Street (`streetAddress`) | 101 Rue de Rivoli                                     |
+| City (`addressLocality`) | Paris                                                 |
+| Region (`addressRegion`) | Île-de-France                                         |
+| Postal code              | 75001                                                 |
+| Country                  | `FR` (two-letter code, shown as the country name)     |
+| Latitude                 | 48.8606                                               |
+| Longitude                | 2.3376                                                |
+| Telephone                | +33 1 23 45 67 89                                     |
+| Website (`url`)          | https://www.example.com/stores/paris-rivoli           |
+| Price range              | `$$`                                                  |
+| Amenities                | Parking, Wheelchair access, Wi-Fi (one value each)    |
+| Image                    | An image picked from the site's files, then published |
 
-Properties:
-- jcr:title: Downtown Store
-- name: Downtown Superstore
-- description: Our flagship store in the heart of downtown Paris
-- telephone: +33-1-2345-6789
-- url: https://example.com/downtown
-- priceRange: $$
+`name`, `description` and `amenityFeature` are internationalized: enter them in each language of the site.
 
-Address (jsstorelocmix:address):
-- streetAddress: 101 Rue de Rivoli
-- addressLocality: Paris
-- addressRegion: Île-de-France
-- postalCode: 75001
-- addressCountry: FR
+## Opening hours
 
-Geolocation (jsstorelocmix:geo):
-- latitude: 48.8606
-- longitude: 2.3376
-
-Amenities (amenityFeature - multiple values):
-- Parking
-- Wheelchair Accessible
-- WiFi
-```
-
-### Opening Hours (multiple string values)
-```json
-{"dayOfWeek": "Monday", "opens": "09:00", "closes": "21:00"}
-{"dayOfWeek": "Tuesday", "opens": "09:00", "closes": "21:00"}
-{"dayOfWeek": "Wednesday", "opens": "09:00", "closes": "21:00"}
-{"dayOfWeek": "Thursday", "opens": "09:00", "closes": "21:00"}
-{"dayOfWeek": "Friday", "opens": "09:00", "closes": "22:00"}
-{"dayOfWeek": "Saturday", "opens": "10:00", "closes": "22:00"}
-{"dayOfWeek": "Sunday", "opens": "10:00", "closes": "20:00"}
-```
-
-## Example 2: Store with 24/7 Hours
-
-### Opening Hours
-For stores that are open 24 hours, use:
-```json
-{"dayOfWeek": "Monday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Tuesday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Wednesday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Thursday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Friday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Saturday", "opens": "00:00", "closes": "23:59"}
-{"dayOfWeek": "Sunday", "opens": "00:00", "closes": "23:59"}
-```
-
-## Example 3: Store with Variable Hours
-
-### Opening Hours
-For stores with different weekend hours:
-```json
-{"dayOfWeek": "Monday", "opens": "08:00", "closes": "18:00"}
-{"dayOfWeek": "Tuesday", "opens": "08:00", "closes": "18:00"}
-{"dayOfWeek": "Wednesday", "opens": "08:00", "closes": "18:00"}
-{"dayOfWeek": "Thursday", "opens": "08:00", "closes": "18:00"}
-{"dayOfWeek": "Friday", "opens": "08:00", "closes": "20:00"}
-{"dayOfWeek": "Saturday", "opens": "10:00", "closes": "17:00"}
-{"dayOfWeek": "Sunday", "opens": "12:00", "closes": "16:00"}
-```
-
-## Example 4: Store Closed on Sundays
-
-### Opening Hours
-Simply omit the Sunday entry:
-```json
-{"dayOfWeek": "Monday", "opens": "09:00", "closes": "19:00"}
-{"dayOfWeek": "Tuesday", "opens": "09:00", "closes": "19:00"}
-{"dayOfWeek": "Wednesday", "opens": "09:00", "closes": "19:00"}
-{"dayOfWeek": "Thursday", "opens": "09:00", "closes": "19:00"}
-{"dayOfWeek": "Friday", "opens": "09:00", "closes": "19:00"}
-{"dayOfWeek": "Saturday", "opens": "09:00", "closes": "19:00"}
-```
-
-## Example 5: Complete Store with All Features
-
-```
-Node Type: jsstorelocnt:store
-Name: luxury-boutique
-
-Properties:
-- jcr:title: Luxury Boutique Strasbourg
-- name: Luxury Boutique
-- description: High-end fashion boutique in the heart of Strasbourg
-- telephone: +33-3-8845-6789
-- url: https://example.com/luxury-boutique
-- priceRange: $$$$
-- image: [reference to uploaded image node]
-
-Address:
-- streetAddress: 3 Place Kléber
-- addressLocality: Strasbourg
-- addressRegion: Grand Est
-- postalCode: 67000
-- addressCountry: FR
-
-Geolocation:
-- latitude: 48.5846
-- longitude: 7.7508
-
-Amenities:
-- Parking
-- Wheelchair Accessible
-- WiFi
-- Personal Shopper
-- Coffee Shop
-
-Opening Hours:
-{"dayOfWeek": "Monday", "opens": "10:00", "closes": "19:00"}
-{"dayOfWeek": "Tuesday", "opens": "10:00", "closes": "19:00"}
-{"dayOfWeek": "Wednesday", "opens": "10:00", "closes": "19:00"}
-{"dayOfWeek": "Thursday", "opens": "10:00", "closes": "20:00"}
-{"dayOfWeek": "Friday", "opens": "10:00", "closes": "20:00"}
-{"dayOfWeek": "Saturday", "opens": "10:00", "closes": "20:00"}
-{"dayOfWeek": "Sunday", "opens": "14:00", "closes": "18:00"}
-```
-
-## How to Get Coordinates
-
-### Method 1: Google Maps
-1. Go to https://maps.google.com
-2. Search for the address
-3. Right-click on the location marker
-4. Select "What's here?"
-5. Click on the coordinates at the bottom to copy them
-
-### Method 2: OpenStreetMap
-1. Go to https://www.openstreetmap.org
-2. Search for the address
-3. Click on "Share" button
-4. Copy the coordinates from the URL or info box
-
-### Method 3: LatLong.net
-1. Go to https://www.latlong.net
-2. Enter the address
-3. Get the latitude and longitude
-
-## Price Range Guidelines
-
-- `$` - Budget-friendly (Under €20)
-- `$$` - Moderate (€20-€50)
-- `$$$` - Upscale (€50-€100)
-- `$$$$` - Luxury (Over €100)
-
-## Common Amenities
-
-Suggested amenity values:
-- Parking
-- Wheelchair Accessible
-- WiFi
-- Restrooms
-- ATM
-- Coffee Shop
-- Personal Shopper
-- Fitting Rooms
-- Gift Wrapping
-- Delivery Service
-- Online Ordering
-- Curbside Pickup
-- Extended Returns
-- Tax-Free Shopping
-- Multilingual Staff
-
-## Creating a Store Locator App
-
-### Step 1: Create the App Container
-```
-Node Type: jsstorelocnt:storeLocatorApp
-Name: store-locator
-Path: /sites/[your-site]/contents/store-locator
-
-Properties:
-- jcr:title: Find Our Stores
-- welcomeTitle: Welcome to Our Store Locator
-- welcomeMessage: Find the nearest store using the search or by browsing the map
-```
-
-### Step 2: Add Store Nodes as Children
-Create multiple `jsstorelocnt:store` nodes under the store locator app:
-```
-/sites/[your-site]/contents/store-locator/
-  ├── downtown-store (jsstorelocnt:store)
-  ├── westside-branch (jsstorelocnt:store)
-  ├── southside-outlet (jsstorelocnt:store)
-  ├── eastside-express (jsstorelocnt:store)
-  └── northside-market (jsstorelocnt:store)
-```
-
-### Step 3: Add to a Page
-Add the store locator app to a page using jContent page composer.
-
-## Validation Checklist
-
-When creating a store, ensure:
-- ✅ Store name is set
-- ✅ Complete address is provided (all fields)
-- ✅ Latitude and longitude are valid decimal numbers
-- ✅ Telephone number includes country code
-- ✅ Opening hours are valid JSON strings
-- ✅ All days have valid time format (HH:MM)
-- ✅ Image is uploaded and referenced (optional but recommended)
-- ✅ Amenities are relevant to the store
-- ✅ Price range matches store type
-
-## Troubleshooting
-
-### Store Not Appearing on Map
-- Check that latitude/longitude are set correctly
-- Verify coordinates are decimal numbers (not DMS format)
-- Ensure coordinates are within valid ranges:
-  - Latitude: -90 to 90
-  - Longitude: -180 to 180
-
-### Opening Hours Not Displaying
-- Verify JSON format is correct (use a JSON validator)
-- Check that dayOfWeek values match exactly: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
-- Ensure time format is HH:MM (24-hour format)
-- Make sure opening time is before closing time
-
-### Store Shows as Closed When It Should Be Open
-- Check that the opening hours for today's day of week are set
-- Verify the current time is between opens and closes
-- Ensure time zone is correct
-
-## Import Example (GraphQL or API)
-
-If importing stores programmatically, use this format:
+The Opening hours field takes one value per time slot. In Content Editor each value has three lists: day of the week, opening time and closing time, in 30-minute steps from 00:00 to 23:30. Each value is stored as one JSON object:
 
 ```json
-{
-  "nodeType": "jsstorelocnt:store",
-  "name": "store-name",
-  "properties": {
-    "jcr:title": "Store Name",
-    "name": "Store Name",
-    "description": "Store description",
-    "telephone": "+1-234-567-8900",
-    "url": "https://example.com",
-    "priceRange": "$$",
-    "streetAddress": "123 Main St",
-    "addressLocality": "City",
-    "addressRegion": "State",
-    "postalCode": "12345",
-    "addressCountry": "US",
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "amenityFeature": ["Parking", "WiFi"],
-    "openingHours": [
-      "{\"dayOfWeek\": \"Monday\", \"opens\": \"09:00\", \"closes\": \"17:00\"}",
-      "{\"dayOfWeek\": \"Tuesday\", \"opens\": \"09:00\", \"closes\": \"17:00\"}"
-    ]
+{ "dayOfWeek": "Monday", "opens": "09:00", "closes": "18:00" }
+```
+
+### Same hours on weekdays, shorter on Saturday, closed on Sunday
+
+| Day       | Opens | Closes |
+| --------- | ----- | ------ |
+| Monday    | 09:00 | 19:00  |
+| Tuesday   | 09:00 | 19:00  |
+| Wednesday | 09:00 | 19:00  |
+| Thursday  | 09:00 | 19:00  |
+| Friday    | 09:00 | 19:00  |
+| Saturday  | 10:00 | 17:00  |
+
+Sunday has no value, so it is shown as closed. The table groups the weekdays into one row ("Monday to Friday").
+
+### Lunch break
+
+Two values for the same day give two slots:
+
+| Day    | Opens | Closes |
+| ------ | ----- | ------ |
+| Monday | 09:00 | 12:30  |
+| Monday | 14:00 | 19:00  |
+
+Repeat the pair for each day that has a break.
+
+### Open 24 hours
+
+Choose the same opening and closing time, for example 00:00 to 00:00. The day is shown as open 24 hours:
+
+| Day    | Opens | Closes |
+| ------ | ----- | ------ |
+| Monday | 00:00 | 00:00  |
+
+Values imported from another system may also use `00:00` to `23:59`; the module reads that as all day too.
+
+### Open past midnight
+
+A closing time earlier than the opening time ends the next day. This slot is open from Friday 18:00 to Saturday 02:00:
+
+| Day    | Opens | Closes |
+| ------ | ----- | ------ |
+| Friday | 18:00 | 02:00  |
+
+## Creating stores with GraphQL
+
+To load stores in bulk, create them under the stores folder with the GraphQL API, then publish the folder. Internationalized properties need a `language`; multiple properties take `values`.
+
+```graphql
+mutation {
+  jcr {
+    mutateNode(pathOrId: "/sites/mySite/contents/stores") {
+      addChild(
+        name: "paris-rivoli"
+        primaryNodeType: "jsstorelocnt:store"
+        properties: [
+          { name: "jcr:title", value: "Paris Rivoli", language: "en" }
+          { name: "name", value: "Paris Rivoli", language: "en" }
+          { name: "streetAddress", value: "101 Rue de Rivoli" }
+          { name: "addressLocality", value: "Paris" }
+          { name: "postalCode", value: "75001" }
+          { name: "addressCountry", value: "FR" }
+          { name: "latitude", value: "48.8606" }
+          { name: "longitude", value: "2.3376" }
+          { name: "telephone", value: "+33 1 23 45 67 89" }
+          { name: "amenityFeature", values: ["Parking", "Wi-Fi"], language: "en" }
+          {
+            name: "openingHours"
+            values: [
+              "{\"dayOfWeek\":\"Monday\",\"opens\":\"09:00\",\"closes\":\"19:00\"}"
+              "{\"dayOfWeek\":\"Tuesday\",\"opens\":\"09:00\",\"closes\":\"19:00\"}"
+            ]
+          }
+        ]
+      ) {
+        uuid
+      }
+    }
   }
 }
 ```
 
-## Best Practices
+Use the times the editor offers (half-hour steps), so that editors can open and save the store without changing its hours.
 
-1. **Consistent Naming**: Use lowercase-with-hyphens for node names
-2. **Complete Data**: Fill in all fields for best user experience
-3. **Accurate Coordinates**: Double-check location pins on the map
-4. **Current Hours**: Keep opening hours up to date
-5. **Quality Images**: Use high-resolution store photos
-6. **Descriptive Text**: Write clear, helpful descriptions
-7. **Contact Info**: Always include working phone numbers
-8. **Regular Updates**: Review and update store information quarterly
+## Checking a store
+
+- **Not on the map**: latitude and longitude must both be set, as decimal numbers, between -90 and 90 and between -180 and 180. Stores without them are still listed.
+- **Not listed**: the store must be a direct child of the folder selected in the locator's Stores Folder field, and published.
+- **Hours missing**: each value must name a day in English (`Monday` to `Sunday`) and use `HH:MM` times; other values are ignored.
+- **Open or closed looks wrong**: the status uses the visitor's clock and time zone, not the store's.
+
+## Getting coordinates
+
+On [OpenStreetMap](https://www.openstreetmap.org), search for the address, right-click the location and choose "Show address": the latitude and longitude are shown in the side panel.

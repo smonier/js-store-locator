@@ -53,7 +53,16 @@
     "weekdays": "En semaine",
     "weekends": "Week-end",
     "everyday": "Tous les jours",
-    "range": "{from} au {to}"
+    "range": "Du {from} au {to}",
+    "inRange": {
+      "monday": "lundi",
+      "tuesday": "mardi",
+      "wednesday": "mercredi",
+      "thursday": "jeudi",
+      "friday": "vendredi",
+      "saturday": "samedi",
+      "sunday": "dimanche"
+    }
   },
   "label": {
     "dayOfWeek": "Jour de la semaine",

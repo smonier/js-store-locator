@@ -53,7 +53,16 @@
     "weekdays": "Weekdays",
     "weekends": "Weekends",
     "everyday": "Every day",
-    "range": "{from} to {to}"
+    "range": "{from} to {to}",
+    "inRange": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    }
   },
   "label": {
     "dayOfWeek": "Day of Week",

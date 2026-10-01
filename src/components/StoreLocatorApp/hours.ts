@@ -48,20 +48,34 @@ const minutes = (time: string) => {
   return h * 60 + m;
 };
 
-/** True when the store is open at `now` (visitor's clock). A slot may run past midnight. */
+/** A closing time of 23:59 means the end of the day: the store is open during that last minute. */
+const closingMinutes = (time: string) => (time === "23:59" ? 24 * 60 : minutes(time));
+
+/**
+ * True when a slot covers its whole day: it runs from 00:00 to 23:59, or it opens and closes at
+ * the same time. Such a slot is listed as "open 24 hours" and counts as open all that day.
+ */
+export const isAllDay = (slot: OpeningHoursSpecification): boolean =>
+  slot.opens === slot.closes || (slot.opens === "00:00" && slot.closes === "23:59");
+
+/**
+ * True when the store is open at `now`, read on the visitor's clock. A slot that closes earlier
+ * than it opens runs past midnight into the next day.
+ */
 export function isOpenAt(hours: OpeningHoursSpecification[], now: Date): boolean {
   const jsDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const today = jsDays[now.getDay()];
   const yesterday = jsDays[(now.getDay() + 6) % 7];
   const current = now.getHours() * 60 + now.getMinutes();
   return hours.some((slot) => {
+    if (isAllDay(slot)) return slot.dayOfWeek === today;
     const opens = minutes(slot.opens);
-    const closes = minutes(slot.closes);
+    const closes = closingMinutes(slot.closes);
     if (slot.dayOfWeek === today) {
       return closes > opens ? current >= opens && current < closes : current >= opens;
     }
     // A slot of yesterday that closes after midnight
-    return slot.dayOfWeek === yesterday && closes <= opens && current < closes;
+    return slot.dayOfWeek === yesterday && closes < opens && current < closes;
   });
 }
 
@@ -96,7 +110,7 @@ export function groupOpeningHours(
     if (slots.length === 0) return t("storedetails.closedDay");
     return slots
       .map((slot) =>
-        slot.opens === "00:00" && (slot.closes === "23:59" || slot.closes === "00:00")
+        isAllDay(slot)
           ? t("storedetails.allday")
           : fill(t("storedetails.timeRange"), {
               opens: formatTime(slot.opens, locale),
@@ -107,6 +121,8 @@ export function groupOpeningHours(
   });
 
   const dayName = (index: number) => t(`days.${DAYS[index].toLowerCase()}`);
+  // Inside a range, day names take their running-text form ("du lundi au vendredi").
+  const rangeDayName = (index: number) => t(`days.inRange.${DAYS[index].toLowerCase()}`);
   const rows: HoursRow[] = [];
   let start = 0;
   for (let i = 1; i <= DAYS.length; i++) {
@@ -115,7 +131,7 @@ export function groupOpeningHours(
       let days: string;
       if (start === 0 && end === DAYS.length - 1) days = t("days.everyday");
       else if (start === end) days = dayName(start);
-      else days = fill(t("days.range"), { from: dayName(start), to: dayName(end) });
+      else days = fill(t("days.range"), { from: rangeDayName(start), to: rangeDayName(end) });
       rows.push({ days, hours: perDay[start] });
       start = i;
     }

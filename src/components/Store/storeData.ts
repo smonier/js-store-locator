@@ -2,20 +2,7 @@ import { buildNodeUrl } from "@jahia/javascript-modules-library";
 import type { JCRNodeWrapper } from "org.jahia.services.content";
 import { parseOpeningHours } from "../StoreLocatorApp/hours.js";
 import type { Store } from "../StoreLocatorApp/types.js";
-
-/** Keeps an absolute http(s) URL, and nothing else. */
-export const safeWebUrl = (value: string | null | undefined): string => {
-  const url = (value ?? "").trim();
-  return /^https?:\/\/[^\s"'<>\\]+$/i.test(url) ? url : "";
-};
-
-/** Builds a `tel:` URI from a free-text phone number: digits only, with a leading "+" kept. */
-export const telephoneHref = (value: string | null | undefined): string => {
-  const raw = (value ?? "").trim();
-  const digits = raw.replace(/\D/g, "");
-  if (!digits) return "";
-  return `tel:${raw.startsWith("+") ? "+" : ""}${digits}`;
-};
+import { safeWebUrl, telephoneHref, uniqueValues } from "./storeValues.js";
 
 const readString = (node: JCRNodeWrapper, name: string): string => {
   try {
@@ -44,11 +31,21 @@ const readCoordinate = (node: JCRNodeWrapper, name: string, limit: number): numb
   return Number.isFinite(value) && Math.abs(value) <= limit ? value : null;
 };
 
-const readImageUrl = (node: JCRNodeWrapper): string => {
+/** The image node a store refers to, or null when there is none or it cannot be read. */
+export const storeImageNode = (node: JCRNodeWrapper): JCRNodeWrapper | null => {
   try {
-    if (!node.hasProperty("image")) return "";
-    const image = node.getProperty("image").getNode() as JCRNodeWrapper | null;
-    return image ? buildNodeUrl(image) : "";
+    if (!node.hasProperty("image")) return null;
+    return (node.getProperty("image").getNode() as JCRNodeWrapper | null) ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const readImageUrl = (node: JCRNodeWrapper): string => {
+  const image = storeImageNode(node);
+  if (!image) return "";
+  try {
+    return buildNodeUrl(image);
   } catch {
     return "";
   }
@@ -80,7 +77,7 @@ export function readStore(node: JCRNodeWrapper): Store {
     pageUrl: readPageUrl(node),
     image: readImageUrl(node),
     priceRange: readString(node, "priceRange"),
-    amenityFeature: readStrings(node, "amenityFeature").filter(Boolean),
+    amenityFeature: uniqueValues(readStrings(node, "amenityFeature")),
     geo: latitude !== null && longitude !== null ? { latitude, longitude } : null,
     address: {
       streetAddress: readString(node, "streetAddress"),

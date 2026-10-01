@@ -1,15 +1,23 @@
 import { jahiaComponent } from "@jahia/javascript-modules-library";
-import { StoreView } from "./StoreView.js";
+import { StoreView, storeHeadingLevel } from "./StoreView.js";
 
-/** The store's own page (main resource): the store name is the page's h1. */
+/**
+ * The store's own page, for template sets that render a main resource with a "fullPage" view: the
+ * store name is the page's h1. The view is not offered in the editors' view picker.
+ */
 export default jahiaComponent(
   {
     componentType: "view",
     nodeType: "jsstorelocnt:store",
     name: "fullPage",
     displayName: "Full page",
+    properties: { visible: "false" },
   },
-  (_props: Record<string, never>, { currentNode, renderContext }) => (
-    <StoreView node={currentNode} renderContext={renderContext} level={1} />
+  (_props: Record<string, never>, { currentNode, mainNode, renderContext }) => (
+    <StoreView
+      node={currentNode}
+      renderContext={renderContext}
+      level={storeHeadingLevel(currentNode, mainNode)}
+    />
   ),
 );

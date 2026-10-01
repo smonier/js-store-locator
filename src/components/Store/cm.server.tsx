@@ -1,6 +1,6 @@
 import { jahiaComponent, AddResources, buildModuleFileUrl, buildNodeUrl } from "@jahia/javascript-modules-library";
 import { createTranslator } from "../StoreLocatorApp/translation.js";
-import { safeWebUrl, telephoneHref } from "./storeData.js";
+import { safeWebUrl, telephoneHref, uniqueValues } from "./storeValues.js";
 import type { StoreProps } from "./types.js";
 import styles from "./Store.module.css";
 
@@ -32,6 +32,9 @@ export default jahiaComponent(
     } = props;
 
     const storeName = name || title;
+    const amenities = uniqueValues(
+      Array.isArray(amenityFeature) ? amenityFeature : amenityFeature ? [amenityFeature] : [],
+    );
     const hasCoordinates = latitude && longitude;
     const cityLine =
       [addressLocality, addressRegion].filter(Boolean).join(", ") || addressCountry || "";
@@ -104,9 +107,9 @@ export default jahiaComponent(
             )}
           </div>
 
-          {amenityFeature && amenityFeature.length > 0 && (
+          {amenities.length > 0 && (
             <div className={styles.badgeGroup}>
-              {amenityFeature.map((amenity) => (
+              {amenities.map((amenity) => (
                 <span key={amenity} className={styles.chip}>
                   {amenity}
                 </span>

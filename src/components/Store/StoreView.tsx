@@ -1,14 +1,22 @@
-import { AddResources, buildModuleFileUrl } from "@jahia/javascript-modules-library";
+import { AddResources, buildModuleFileUrl, server } from "@jahia/javascript-modules-library";
 import type { JCRNodeWrapper } from "org.jahia.services.content";
 import type { RenderContext } from "org.jahia.services.render";
 import { Heading, StoreInfo, storeLocation } from "../StoreLocatorApp/StoreInfo.js";
+import { headingLevelFor } from "../StoreLocatorApp/headingLevel.js";
 import { createTranslator } from "../StoreLocatorApp/translation.js";
-import { readStore } from "./storeData.js";
+import { readStore, storeImageNode } from "./storeData.js";
 import classes from "../StoreLocatorApp/StoreLocatorApp.module.css";
 
 /**
- * A store rendered on the server: its name as a heading of `level`, then its details. On the
- * store's own page the name is the page's h1 (`level` 1); elsewhere it links to that page.
+ * Level of a store's name: the page's h1 when the store is the main resource (its own page),
+ * otherwise one level below the container it is placed in.
+ */
+export const storeHeadingLevel = (currentNode: JCRNodeWrapper, mainNode: JCRNodeWrapper) =>
+  mainNode.getIdentifier() === currentNode.getIdentifier() ? 1 : headingLevelFor(currentNode);
+
+/**
+ * A store rendered on the server: its name as a heading of `level`, then its details. At level 1
+ * the name is the page's h1; at any other level it links to the store's own page.
  */
 export function StoreView({
   node,
@@ -17,12 +25,15 @@ export function StoreView({
 }: {
   node: JCRNodeWrapper;
   renderContext: RenderContext;
-  level: 1 | 2;
+  level: number;
 }) {
   const store = readStore(node);
+  const image = storeImageNode(node);
+  if (image) server.render.addCacheDependency({ node: image }, renderContext);
   const translation = createTranslator(renderContext.getMainResourceLocale().toString());
   const location = storeLocation(store);
-  const idPrefix = `jsstoreloc-${store.id}`;
+  // Unique per rendering, so a store shown twice on a page keeps distinct ids.
+  const idPrefix = `jsstoreloc-${store.id}-${Math.random().toString(36).slice(2, 8)}`;
   return (
     <article className={`${classes.app} ${classes.storeView}`} aria-labelledby={`${idPrefix}-name`}>
       <AddResources type="css" resources={buildModuleFileUrl("dist/assets/style.css")} />
@@ -31,7 +42,7 @@ export function StoreView({
           {store.name}
         </h1>
       ) : (
-        <Heading level={2} className={classes.storeViewTitle} id={`${idPrefix}-name`}>
+        <Heading level={level} className={classes.storeViewTitle} id={`${idPrefix}-name`}>
           {store.pageUrl ? (
             <a href={store.pageUrl} className={classes.storeViewLink}>
               {store.name}

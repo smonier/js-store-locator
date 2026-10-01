@@ -1,5 +1,5 @@
 import { jahiaComponent } from "@jahia/javascript-modules-library";
-import { StoreView } from "./StoreView.js";
+import { StoreView, storeHeadingLevel } from "./StoreView.js";
 
 /**
  * A store placed on a page, or opened at its own URL by a template set that renders the main
@@ -16,7 +16,7 @@ export default jahiaComponent(
     <StoreView
       node={currentNode}
       renderContext={renderContext}
-      level={mainNode.getIdentifier() === currentNode.getIdentifier() ? 1 : 2}
+      level={storeHeadingLevel(currentNode, mainNode)}
     />
   ),
 );

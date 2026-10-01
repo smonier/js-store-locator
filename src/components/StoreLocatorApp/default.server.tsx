@@ -4,29 +4,12 @@ import {
   buildModuleFileUrl,
   Island,
   getChildNodes,
+  server,
 } from "@jahia/javascript-modules-library";
-import type { JCRNodeWrapper } from "org.jahia.services.content";
 import type { StoreLocatorAppProps } from "./types.js";
-import { readStore } from "../Store/storeData.js";
+import { readStore, storeImageNode } from "../Store/storeData.js";
+import { headingLevelFor } from "./headingLevel.js";
 import StoreLocatorClient from "./interactive.island.client.js";
-
-/**
- * Level of the app's heading. Under a titled container (a section that renders its title as a
- * heading, such as a free zone), the app starts one level below it; elsewhere it starts at h2.
- */
-const headingLevelFor = (node: JCRNodeWrapper): number => {
-  try {
-    const parent = node.getParent() as JCRNodeWrapper;
-    const titledContainer =
-      !parent.isNodeType("jnt:page") &&
-      !parent.isNodeType("jnt:area") &&
-      parent.hasProperty("jcr:title") &&
-      parent.getProperty("jcr:title").getString().trim() !== "";
-    return titledContainer ? 3 : 2;
-  } catch {
-    return 2;
-  }
-};
 
 export default jahiaComponent(
   {
@@ -45,10 +28,15 @@ export default jahiaComponent(
       node.isNodeType("jsstorelocnt:store"),
     );
 
-    // The rendering reads the folder and every store: flush it when one of them changes.
+    // The rendering reads the folder, every store and every store image: flush it when one of
+    // them changes.
     const dependencies = currentResource.getDependencies();
     dependencies.add(storeParent.getPath());
-    storeNodes.forEach((node) => dependencies.add(node.getPath()));
+    storeNodes.forEach((node) => {
+      dependencies.add(node.getPath());
+      const image = storeImageNode(node);
+      if (image) server.render.addCacheDependency({ node: image }, renderContext);
+    });
 
     return (
       <>

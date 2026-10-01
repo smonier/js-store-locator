@@ -58,6 +58,8 @@ See [Development](#development) for the `.env` settings.
 
 The locator lists the stores that are direct children of the selected folder; stores in sub-folders are not listed. If no folder is set, the locator looks for stores among its own child nodes; the content type declares no child node definition, so in practice set the folder.
 
+Sample stores and opening-hours patterns are in [CONTENT_EXAMPLES.md](CONTENT_EXAMPLES.md).
+
 The Welcome Title is the locator's heading; when it is empty, the component's title is used instead.
 
 The locator's rendering is refreshed when the folder, any listed store or any store image changes.
@@ -297,6 +299,15 @@ Store content (`name`, `description`, `welcomeTitle`, `welcomeMessage`, `amenity
 - `--mode ui` builds the jContent UI extension into `javascript/apps/` with `@jahia/vite-federation-plugin` (Module Federation, React 18 shared with jContent). `src/init.tsx` registers the `OpeningHoursSelector` selector type on `jahiaApp-init:20`, and `settings/content-editor-forms/fieldsets/jsstorelocnt_store.json` assigns it to the `openingHours` field.
 
 `package.json` declares `/dist/client`, `/dist/assets` and `/javascript/apps` as static resources.
+
+### Opening-hours selector
+
+`src/components/OpeningHoursSelector/OpeningHoursSelector.tsx` is the Content Editor field component behind the `OpeningHoursSelector` selector type.
+
+- It is registered with `supportMultiple: false`: Content Editor renders one selector per value of the multiple `openingHours` field, and each selector reads and writes one JSON value.
+- Each change writes the whole value back as `{"dayOfWeek":…,"opens":…,"closes":…}`. The time lists offer 00:00 to 23:30 in 30-minute steps.
+- A value that is empty or not valid JSON is shown as Monday, 09:00 to 18:00; nothing is written for it until one of the lists is changed.
+- Its labels and day names come from `settings/locales/` through the same translation helper as the views, in the jContent interface language (`window.jahia.i18n.language`).
 
 ### Deploying to a local Jahia
 

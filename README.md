@@ -306,7 +306,7 @@ Store content (`name`, `description`, `welcomeTitle`, `welcomeMessage`, `amenity
 
 - It is registered with `supportMultiple: false`: Content Editor renders one selector per value of the multiple `openingHours` field, and each selector reads and writes one JSON value.
 - Each change writes the whole value back as `{"dayOfWeek":…,"opens":…,"closes":…}`. The time lists offer 00:00 to 23:30 in 30-minute steps.
-- A value that is empty or not valid JSON is shown as Monday, 09:00 to 18:00; nothing is written for it until one of the lists is changed.
+- A new entry starts as Monday, 09:00 to 18:00, and that default is saved as shown. A stored value that is not valid JSON is shown with the same default.
 - Its labels and day names come from `settings/locales/` through the same translation helper as the views, in the jContent interface language (`window.jahia.i18n.language`).
 
 ### Deploying to a local Jahia

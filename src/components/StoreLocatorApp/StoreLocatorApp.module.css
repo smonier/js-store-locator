@@ -78,7 +78,7 @@
     overflow-y: auto;
   }
 
-  .withMap .mapColumn {
+  .withMap .mapArea {
     min-height: 32rem;
   }
 
@@ -308,6 +308,15 @@
   display: none;
 }
 
+/* The map and, side by side, the details panel over its lower part. */
+.mapArea {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 22rem;
+}
+
 .map {
   flex: 1;
   width: 100%;
@@ -338,18 +347,24 @@
   line-height: 2.25rem;
 }
 
-/* Leaflet paints its controls white; on a dark host the text colour above would vanish on it. */
+/* Hovered zoom controls keep the app's surface colours. */
 .app :global(.leaflet-container a.leaflet-control-zoom-in:hover),
 .app :global(.leaflet-container a.leaflet-control-zoom-out:hover) {
   background-color: var(--_surface-alt);
 }
 
-.app :global(.leaflet-control-attribution) {
-  color: var(--_text);
-  background-color: color-mix(in srgb, var(--_surface) 90%, transparent);
+/* Map credits, below the map. */
+.attribution {
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  color: var(--_text-muted);
+  font-size: 0.75rem;
+  text-align: end;
+  background-color: var(--_surface);
+  border-top: 1px solid var(--_border);
 }
 
-.app :global(.leaflet-control-attribution a) {
+.attribution a {
   color: var(--_accent);
 }
 
@@ -539,17 +554,21 @@
 }
 
 /* A store rendered on the server (its own page, or placed on a page). It is page content, not
-   the light panel: it takes the host's colours unless the --jsstoreloc-* properties are set. */
+   the light panel: it takes the host's colours unless the --jsstoreloc-* properties are set, and
+   then paints the matching surface under the text. */
 .storeView {
   --_text: var(--jsstoreloc-color-text, currentColor);
   --_text-muted: var(--jsstoreloc-color-text-muted, currentColor);
+  --_surface: var(--jsstoreloc-color-surface, transparent);
   --_accent: var(--jsstoreloc-color-accent, currentColor);
   --_border-strong: var(--jsstoreloc-color-border-strong, currentColor);
   --_focus: var(--jsstoreloc-color-focus, currentColor);
 
-  padding: 1rem 0;
+  padding: 1rem;
   color-scheme: inherit;
-  color: inherit;
+  color: var(--_text);
+  background-color: var(--_surface);
+  border-radius: var(--_radius);
 }
 
 .storeView .detailsBody {

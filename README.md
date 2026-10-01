@@ -339,3 +339,7 @@ JAHIA_USER=root:<password>
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+Released under the [MIT License](LICENSE).

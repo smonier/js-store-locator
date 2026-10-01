@@ -1,5 +1,7 @@
 import { jahiaComponent, AddResources, buildModuleFileUrl, buildNodeUrl } from "@jahia/javascript-modules-library";
-import type { StoreProps } from "./types";
+import { createTranslator } from "../StoreLocatorApp/translation.js";
+import { safeWebUrl, telephoneHref } from "./storeData.js";
+import type { StoreProps } from "./types.js";
 import styles from "./Store.module.css";
 
 export default jahiaComponent(
@@ -9,7 +11,8 @@ export default jahiaComponent(
     name: "cm",
     displayName: "Content Manager View",
   },
-  (props: StoreProps) => {
+  (props: StoreProps, { renderContext }) => {
+    const { t } = createTranslator(renderContext.getMainResourceLocale().toString());
     const {
       "jcr:title": title,
       name,
@@ -29,7 +32,6 @@ export default jahiaComponent(
     } = props;
 
     const storeName = name || title;
-    const hasAddress = streetAddress || addressLocality || addressRegion || postalCode;
     const hasCoordinates = latitude && longitude;
     const cityLine =
       [addressLocality, addressRegion].filter(Boolean).join(", ") || addressCountry || "";
@@ -40,8 +42,8 @@ export default jahiaComponent(
         imageUrl = (image as { url: string }).url;
       } else {
         try {
-          imageUrl = buildNodeUrl(image as any);
-        } catch (e) {
+          imageUrl = buildNodeUrl(image);
+        } catch {
           imageUrl = undefined;
         }
       }
@@ -53,9 +55,11 @@ export default jahiaComponent(
 
         <div className={styles.heroSection}>
           {imageUrl ? (
-            <img src={imageUrl} alt={storeName} className={styles.heroImage} />
+            <img src={imageUrl} alt="" className={styles.heroImage} />
           ) : (
-            <div className={styles.heroFallback}>{storeName?.charAt(0) ?? "S"}</div>
+            <div className={styles.heroFallback} aria-hidden="true">
+              {storeName?.charAt(0)}
+            </div>
           )}
           {priceRange && <span className={styles.pricePill}>{priceRange}</span>}
         </div>
@@ -63,7 +67,7 @@ export default jahiaComponent(
         <div className={styles.content}>
           <div className={styles.headerRow}>
             <div>
-              <h3 className={styles.storeTitle}>{storeName}</h3>
+              <h2 className={styles.storeTitle}>{storeName}</h2>
               {cityLine && <div className={styles.subtleText}>{cityLine}</div>}
             </div>
             {hasCoordinates && (
@@ -78,23 +82,23 @@ export default jahiaComponent(
           <div className={styles.infoStack}>
             {fullAddress && (
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Address</span>
+                <span className={styles.infoLabel}>{t("storedetails.address")}</span>
                 <span className={styles.infoValue}>{fullAddress}</span>
               </div>
             )}
-            {telephone && (
+            {telephone && telephoneHref(telephone) && (
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Phone</span>
-                <a className={styles.infoValue} href={`tel:${telephone}`}>
+                <span className={styles.infoLabel}>{t("storedetails.phone")}</span>
+                <a className={styles.infoValue} href={telephoneHref(telephone)}>
                   {telephone}
                 </a>
               </div>
             )}
-            {url && (
+            {safeWebUrl(url) && (
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Website</span>
-                <a className={styles.infoValue} href={url} target="_blank" rel="noopener noreferrer">
-                  Visit site
+                <span className={styles.infoLabel}>{t("cm.website")}</span>
+                <a className={styles.infoValue} href={safeWebUrl(url)}>
+                  {t("storedetails.website")}
                 </a>
               </div>
             )}

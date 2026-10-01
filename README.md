@@ -7,7 +7,7 @@ Jahia module that delivers a fully operational store locator experience—conten
 ```bash
 yarn install
 docker compose up --wait   # boots Jahia locally
-yarn dev                   # watch + rebuild
+yarn dev                   # builds the UI extension once, then watches the views and the island
 ```
 
 To deploy:
@@ -32,14 +32,15 @@ yarn deploy                # or copy dist/package.tgz to your Jahia
   - Views: interactive island (default), Content Manager preview
 - `jsstorelocnt:store`
   - Properties include `name`, `description`, `url`, `telephone`, `image`, `priceRange`, `amenityFeature`, `openingHours`, plus address/geolocation mixins
-  - Views: `fullPage` (the store's own page, used by template sets that render a main resource with that view), default, Content Manager preview card
+  - Views: default (on a page, or the store's own page), `fullPage` (the store's own page, for template sets that render a main resource with that view; not offered in the view picker), Content Manager preview card
 
 All overrides live under `settings/content-editor-forms/fieldsets` and icons under `settings/content-types-icons`.
 
 ## Frontend Behavior
 
 - Leaflet map with zooming markers, tooltips, and a sidebar details panel
-- Search filters by store name, city, or region
+- Search filters by store name, city, region or postal code, ignoring case and accents ("orleans" finds "Orléans")
+- Opening hours: a slot from 00:00 to 23:59, or one that opens and closes at the same time, means open all day; a slot that closes earlier than it opens runs past midnight
 - Reset button clears the selection and re-centers the map on all stores
 - Welcome block displays the per-site title/message
 - Custom translation context drives all UI—including the selector—so no module-specific `i18next` initialization conflicts with Jahia
@@ -61,8 +62,12 @@ All overrides live under `settings/content-editor-forms/fieldsets` and icons und
 - The store list is the text equivalent of the map: every store, with its address, contact links, amenities and opening hours, is reachable without the map. The island is rendered on the server, so without JavaScript the list links each store to its own page.
 - Headings start one level below the container's title (h3 in a titled section, h2 elsewhere); the store page renders the store name as its h1.
 - The search field has a visible label, and the number of results is announced (`role="status"`).
-- Markers are keyboard buttons named after the store; Enter or Space opens the details, the focus moves to them, and Escape or the close button returns it to the list.
+- Markers are keyboard buttons named after the store; Enter or Space opens the details, the focus moves to them, and Escape or the close button returns it to the control that opened them (the marker or the store in the list), or to another visible control when that one is hidden.
 - The open/closed status is text with a symbol, computed in the visitor's browser.
+
+## Known limitations
+
+- The open/closed status reads the visitor's clock and time zone. The content model has no time zone for a store, so a visitor in another time zone sees the status for their own local time. The opening-hours table itself is shown as entered.
 
 ## Scripts
 
@@ -71,7 +76,8 @@ All overrides live under `settings/content-editor-forms/fieldsets` and icons und
 | `yarn build`    | Type-check, build the views and island, then the UI extension      |
 | `yarn package`  | Packs the module into `dist/package.tgz`                           |
 | `yarn deploy`   | Pushes the build artifact to the configured Jahia instance         |
-| `yarn dev`      | Watch mode (alias `yarn watch`)                                    |
+| `yarn dev`      | Build the UI extension, then watch the views and island (alias `yarn watch`); rerun it after changing the UI extension |
+| `yarn test`     | Unit tests (Vitest) for the opening hours, search and link helpers |
 | `yarn lint`     | ESLint                                                             |
 | `yarn format`   | Prettier                                                           |
 | `yarn clean`    | Remove build output                                                |

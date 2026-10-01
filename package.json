@@ -30,7 +30,7 @@
     "build": "tsc --noEmit && vite build && vite build --mode ui && run package",
     "clean": "rm -rf dist/",
     "deploy": "jahia-deploy",
-    "dev": "vite build --watch",
+    "dev": "vite build --mode ui && vite build --watch",
     "format": "prettier --write --list-different .",
     "lint": "eslint .",
     "package": "yarn pack --out dist/package.tgz",

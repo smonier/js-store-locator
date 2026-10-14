@@ -1,0 +1,85 @@
+{
+  "title": "Localizador de lojas",
+  "toast": {
+    "welcome": {
+      "title": "Bem-vindo ao Localizador de lojas",
+      "description": "Encontrar a loja mais próxima através da pesquisa ou do mapa"
+    }
+  },
+  "searchbar": {
+    "placeholder": "Nome, cidade, região ou código postal",
+    "button": "pesquisar",
+    "label": "Pesquisar uma loja"
+  },
+  "storelist": {
+    "nostore": "Nenhuma loja encontrada.",
+    "open": "Aberta",
+    "closed": "Fechada",
+    "miles": "milhas de distância",
+    "reset": "Repor",
+    "resetHint": "a pesquisa e o mapa",
+    "count_one": "{count} loja",
+    "count_other": "{count} lojas",
+    "hideList": "Ocultar a lista",
+    "showList": "Mostrar a lista"
+  },
+  "storedetails": {
+    "address": "Morada",
+    "directions": "Obter indicações",
+    "hours": "Horário de funcionamento",
+    "open": "Aberta neste momento",
+    "closed": "Fechada neste momento",
+    "amenities": "Serviços",
+    "website": "Visitar o sítio Web",
+    "allday": "Aberta 24 horas",
+    "to": "para",
+    "closedDay": "Fechada",
+    "of": "de",
+    "phone": "Telefone:",
+    "contact": "Contacto",
+    "day": "Dia",
+    "timeRange": "das {opens} às {closes}",
+    "close": "Fechar os detalhes de {name}",
+    "storePage": "Página da loja"
+  },
+  "days": {
+    "monday": "Segunda-feira",
+    "tuesday": "Terça-feira",
+    "wednesday": "Quarta-feira",
+    "thursday": "Quinta-feira",
+    "friday": "Sexta-feira",
+    "saturday": "Sábado",
+    "sunday": "Domingo",
+    "weekdays": "Dias úteis",
+    "weekends": "Fins de semana",
+    "everyday": "Todos os dias",
+    "range": "De {from} a {to}",
+    "inRange": {
+      "monday": "segunda-feira",
+      "tuesday": "terça-feira",
+      "wednesday": "quarta-feira",
+      "thursday": "quinta-feira",
+      "friday": "sexta-feira",
+      "saturday": "sábado",
+      "sunday": "domingo"
+    }
+  },
+  "label": {
+    "dayOfWeek": "Dia da semana",
+    "opens": "Abre",
+    "closes": "Fecha"
+  },
+  "map": {
+    "label": "Mapa das lojas",
+    "note": "Todas as lojas do mapa constam também da lista. Com as teclas de seta move-se o mapa e com a tecla Tab acede-se aos marcadores das lojas.",
+    "zoomIn": "Aumentar o zoom",
+    "zoomOut": "Diminuir o zoom",
+    "contributors": "colaboradores"
+  },
+  "cm": {
+    "empty": "Ainda sem lojas. Adicionar lojas à pasta de lojas, ou como elementos subordinados deste componente.",
+    "more": "e mais {count}",
+    "footer": "Apresenta um localizador de lojas interativo na página.",
+    "website": "Sítio Web"
+  }
+}

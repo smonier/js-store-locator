@@ -1,5 +1,10 @@
 # js-store-locator Changelog
 
+## Unreleased
+
+- European Portuguese (pt) visitor-facing labels (`settings/locales/pt.json`), selected for `pt` and its variants. Editor labels stay in English and French.
+- A unit test checks that every locale file has the keys and placeholders of `en.json`.
+
 ## 1.1.0 (2026-10-01)
 
 ### Accessibility (RGAA 4.1.2, WCAG 2.1 AA)

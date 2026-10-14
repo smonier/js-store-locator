@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useMemo } from "react";
 import enTranslations from "../../../settings/locales/en.json";
 import frTranslations from "../../../settings/locales/fr.json";
+import ptTranslations from "../../../settings/locales/pt.json";
 
-type Locale = "en" | "fr";
+type Locale = "en" | "fr" | "pt";
 
 const resources: Record<Locale, Record<string, unknown>> = {
   en: enTranslations,
   fr: frTranslations,
+  pt: ptTranslations,
 };
 
 const DEFAULT_LOCALE: Locale = "en";
@@ -14,7 +16,7 @@ const DEFAULT_LOCALE: Locale = "en";
 const normalizeLocale = (locale?: string | null): Locale => {
   if (!locale) return DEFAULT_LOCALE;
   const normalized = locale.toLowerCase().split(/[-_]/)[0];
-  return normalized === "fr" ? "fr" : "en";
+  return normalized === "fr" || normalized === "pt" ? normalized : "en";
 };
 
 const getValue = (target: unknown, path: string[]): string | undefined => {

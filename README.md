@@ -13,7 +13,7 @@ A Jahia JavaScript module that adds a store locator to a site: editors manage st
 - **Responsive**: list and map side by side when the component is at least 48rem wide, stacked below that, down to 320 px.
 - **Themeable** through `--jsstoreloc-*` CSS custom properties, including a dark host theme.
 - **Opening-hours editor** for Content Editor, delivered as a jContent UI extension.
-- **English and French** for visitors and editors.
+- **English and French** for editors; **English, French and European Portuguese** for visitors.
 
 ## Requirements
 
@@ -258,12 +258,14 @@ The map tiles themselves are not themed.
 
 ## Internationalisation
 
-| Audience                                                | Files                                                                 |
-| ------------------------------------------------------- | --------------------------------------------------------------------- |
-| Visitors (views, island) and the opening-hours selector | `settings/locales/en.json`, `settings/locales/fr.json`                |
-| Editors (type, field and tooltip labels)                | `settings/resources/js-store-locator_en.properties`, `_fr.properties` |
+| Audience                                                | Files                                                                  |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Visitors (views, island) and the opening-hours selector | `settings/locales/en.json`, `fr.json`, `pt.json` (European Portuguese) |
+| Editors (type, field and tooltip labels)                | `settings/resources/js-store-locator_en.properties`, `_fr.properties`  |
 
-The views and the island use a small translation helper (`src/components/StoreLocatorApp/translation.tsx`) that reads these JSON files directly, so the module does not start its own i18next instance. The locale is the page's rendering locale: French for `fr` and its variants, English for every other language. Missing keys fall back to English. Times and country names are formatted with the browser's or server's `Intl` APIs in that language.
+The views and the island use a small translation helper (`src/components/StoreLocatorApp/translation.tsx`) that reads these JSON files directly, so the module does not start its own i18next instance. The locale is the page's rendering locale: French for `fr` and its variants, European Portuguese for `pt` and its variants, English for every other language. Missing keys fall back to English. Times and country names are formatted with the browser's or server's `Intl` APIs in that language.
+
+There is no Portuguese resource bundle: editors work in English or French, so `settings/resources` has no `_pt.properties`.
 
 Store content (`name`, `description`, `welcomeTitle`, `welcomeMessage`, `amenityFeature`) is internationalized in the repository and translated by editors as usual.
 
@@ -332,7 +334,7 @@ JAHIA_USER=root:<password>
 │   ├── definitions.cnd                 # namespaces and the jsstorelocmix:component mixin
 │   ├── content-editor-forms/fieldsets/ # Content Editor overrides (price range, opening hours)
 │   ├── content-types-icons/            # content type icons
-│   ├── locales/                        # visitor-facing texts (en, fr)
+│   ├── locales/                        # visitor-facing texts (en, fr, pt)
 │   └── resources/                      # editor labels and tooltips (en, fr)
 ├── src/
 │   ├── components/
